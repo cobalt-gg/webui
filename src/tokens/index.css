@@ -1,0 +1,84 @@
+:root,
+[data-ui-theme="light"] {
+  color-scheme: light;
+  --ui-bg: #ffffff;
+  --ui-surface: #f5f6f8;
+  --ui-surface-elevated: #ffffff;
+  --ui-border: #dce0e6;
+  --ui-text: #19212f;
+  --ui-text-secondary: #4c5769;
+  --ui-text-muted: #647084;
+  --ui-accent: #315edb;
+  --ui-accent-hover: #234bb9;
+  --ui-on-accent: #ffffff;
+  --ui-danger: #bc303b;
+  --ui-warning: #8c6008;
+  --ui-success: #197548;
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 24px;
+  --ui-space-6: 32px;
+  --ui-radius-sm: 5px;
+  --ui-radius-md: 8px;
+  --ui-radius-lg: 12px;
+  --ui-radius-full: 999px;
+  --ui-shadow-sm: 0 1px 3px #13233b0d;
+  --ui-shadow-lg: 0 12px 48px #13233b26;
+  --ui-font-sans:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --ui-font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  --ui-font-xs: 12px;
+  --ui-font-sm: 14px;
+  --ui-font-md: 16px;
+  --ui-font-lg: 20px;
+  --ui-font-xl: 28px;
+  --ui-weight-normal: 400;
+  --ui-weight-medium: 500;
+  --ui-weight-semibold: 600;
+  --ui-line-height: 1.5;
+  --ui-motion-fast: 100ms;
+  --ui-motion-normal: 160ms;
+  --ui-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ui-z-overlay: 100;
+  --ui-z-popover: 110;
+  --ui-z-toast: 120;
+  --ui-container-width: 1120px;
+}
+[data-ui-theme="dark"] {
+  color-scheme: dark;
+  --ui-bg: #14171e;
+  --ui-surface: #1c212b;
+  --ui-surface-elevated: #232a36;
+  --ui-border: #343d4c;
+  --ui-text: #edf0f5;
+  --ui-text-secondary: #bbc4d3;
+  --ui-text-muted: #9ca9bc;
+  --ui-accent: #9ab5ff;
+  --ui-accent-hover: #b4c8ff;
+  --ui-on-accent: #101e42;
+  --ui-danger: #ff8c95;
+  --ui-warning: #efc36c;
+  --ui-success: #79d4a2;
+  --ui-shadow-lg: 0 12px 48px #0006;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-ui-theme="light"]):not([data-ui-theme="dark"]) {
+    color-scheme: dark;
+    --ui-bg: #14171e;
+    --ui-surface: #1c212b;
+    --ui-surface-elevated: #232a36;
+    --ui-border: #343d4c;
+    --ui-text: #edf0f5;
+    --ui-text-secondary: #bbc4d3;
+    --ui-text-muted: #9ca9bc;
+    --ui-accent: #9ab5ff;
+    --ui-accent-hover: #b4c8ff;
+    --ui-on-accent: #101e42;
+    --ui-danger: #ff8c95;
+    --ui-warning: #efc36c;
+    --ui-success: #79d4a2;
+  }
+}
