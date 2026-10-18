@@ -129,10 +129,9 @@ Connect this GitHub repository to a **Cloudflare Pages** project:
 
 Cloudflare installs dependencies with npm. The lockfile is committed for reproducibility. No Pages Functions, server runtime, or database are required. For an existing Workers project, use the static-assets configuration below instead.
 
-The output is static HTML, CSS, JS, and `_headers`. Vite emits content-hashed assets; `_headers` grants those assets immutable caching. HTML retains Cloudflare's default update behavior. The site uses hash routes (`/#/button`), so component links and reloads work without rewrites or server routing on Pages or another static host. Assets use root-relative URLs, with no hardcoded development origin, external fonts, or image dependencies. Any Pages domain or custom domain such as `ui.cobaltlauncher.com` works at the domain root. Add the custom domain through Pages settings and follow Cloudflare's DNS instructions.
+The output is static HTML, CSS, JS, and `_headers`. Vite emits content-hashed assets; `_headers` grants those assets immutable caching. HTML retains Cloudflare's default update behavior. The site uses hash routes (`/#/button`), so component links and reloads work without rewrites or server routing on Pages or another static host. Assets use root-relative URLs, with no hardcoded development origin, externally hosted fonts, or image dependencies. Any Pages domain or custom domain such as `ui.cobaltlauncher.com` works at the domain root. Add the custom domain through Pages settings and follow Cloudflare's DNS instructions.
 
 Publishing the repository changes, creating release tags, connecting Pages, and configuring DNS are separate manual deployment steps. No live deployment is performed by the build scripts.
-
 
 ## Existing Cloudflare Workers project
 
@@ -140,13 +139,19 @@ The same static site can also be hosted with **Workers Static Assets**. Keep you
 
 In the existing Workers project's build settings, use:
 
-| Setting | Value |
-| --- | --- |
-| Root directory | repository root |
-| Build command | `npm run build:site` |
+| Setting        | Value                 |
+| -------------- | --------------------- |
+| Root directory | repository root       |
+| Build command  | `npm run build:site`  |
 | Deploy command | `npx wrangler deploy` |
-| Node version | `24` |
+| Node version   | `24`                  |
 
 The configured Worker name is `webui`. If your existing Worker has a different name, use `npx wrangler deploy --name YOUR_EXISTING_WORKER_NAME` as the deploy command, or update `name` in `wrangler.jsonc` to match. Redeploy the latest `main` commit after saving the settings. Manage `webui.cobaltlauncher.com` on the existing Worker's Domains & Routes page; the configuration intentionally does not replace account or domain settings.
 
 The deployment uploads static assets only. Hash routes and the generated `_headers` work with Workers Static Assets as well. For local deployment validation after building, run `npx wrangler deploy --dry-run`; actual deployment needs Cloudflare authentication, provided automatically by Workers Builds in the connected project.
+
+## Gallery visual identity
+
+The documentation site has its own Cobalt theme in `site/src/identity.css`, separate from the generic package defaults. Its warm charcoal (`#0e0e0d`, `#141413`), indigo (`#3b4275`, `#5a63a0`, `#8b93c9`), and text colors follow the tokens served by cobaltlauncher.com. Geist and JetBrains Mono are self-hosted in `site/public/fonts` with their SIL Open Font License files. The gallery defaults to dark mode and remembers the visitor's theme choice.
+
+Motion takes inspiration from bencho.dev's soft reveals and tactile micro-interactions: staggered card entrances, a geometric floating mark, pointer-positioned lighting, and gentle press/hover responses. No animation library or runtime dependency is added. Scroll reveals use IntersectionObserver with a visible fallback; reduced-motion preferences disable animation, transitions, and press scaling. Press `/` outside a form field to focus component search. These visual behaviors live in the gallery; library consumers retain their own theme and motion choices.

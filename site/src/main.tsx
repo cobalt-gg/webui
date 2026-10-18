@@ -1,4 +1,10 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent,
+} from "react";
 import { createRoot } from "react-dom/client";
 import {
   Badge,
@@ -17,6 +23,34 @@ import { categories, registry, type ComponentEntry } from "../../src/registry";
 import { Preview, Variants } from "./previews";
 import "@cobalt/ui/styles.css";
 import "./site.css";
+import "./identity.css";
+function CobaltMark() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 32 32" fill="none">
+      <path
+        d="M24 7 16 3 5 9v14l11 6 8-4v-7l-8 4-4-2v-8l4-2 8 4V7Z"
+        fill="currentColor"
+      />
+      <path d="m25 14 4 2v7l-4 2V14Z" fill="currentColor" opacity=".45" />
+    </svg>
+  );
+}
+function trackPointer(event: PointerEvent<HTMLElement>) {
+  if (
+    event.pointerType !== "mouse" ||
+    matchMedia("(prefers-reduced-motion: reduce)").matches
+  )
+    return;
+  const bounds = event.currentTarget.getBoundingClientRect();
+  event.currentTarget.style.setProperty(
+    "--pointer-x",
+    `${event.clientX - bounds.left}px`,
+  );
+  event.currentTarget.style.setProperty(
+    "--pointer-y",
+    `${event.clientY - bounds.top}px`,
+  );
+}
 function ExternalIcon() {
   return (
     <svg
@@ -46,6 +80,31 @@ function useRoute() {
 }
 function App() {
   const route = useRoute();
+  const gridRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid || !("IntersectionObserver" in window)) return;
+    const observer = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-revealed");
+            observer.unobserve(entry.target);
+          }
+        }),
+      { rootMargin: "0px 0px 40px 0px", threshold: 0.05 },
+    );
+    grid.querySelectorAll(".gallery-card").forEach((card) => {
+      if (
+        card.getBoundingClientRect().top > window.innerHeight &&
+        !card.classList.contains("is-revealed")
+      ) {
+        card.classList.add("will-reveal");
+        observer.observe(card);
+      }
+    });
+    return () => observer.disconnect();
+  });
   const selected = registry.find((c) => c.slug === route);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
@@ -54,7 +113,7 @@ function App() {
       const t = localStorage.getItem("ui-theme");
       if (t === "light" || t === "dark") return t;
     } catch {}
-    return matchMedia("(prefers-color-scheme:dark)").matches ? "dark" : "light";
+    return "dark";
   });
   useEffect(() => {
     document.documentElement.dataset.uiTheme = theme;
@@ -76,6 +135,29 @@ function App() {
         .toLowerCase()
         .includes(search.toLowerCase()),
   );
+  useEffect(() => {
+    const shortcut = (event: KeyboardEvent) => {
+      if (
+        event.key === "/" &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        !(event.target as HTMLElement).closest(
+          'input,textarea,select,[contenteditable="true"]',
+        )
+      ) {
+        const input = document.querySelector<HTMLInputElement>(
+          'input[aria-label="Search components"]',
+        );
+        if (input) {
+          event.preventDefault();
+          input.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", shortcut);
+    return () => window.removeEventListener("keydown", shortcut);
+  }, []);
   function filter(cat: string) {
     setCategory(cat);
     if (route) location.hash = "/";
@@ -94,20 +176,42 @@ function App() {
       </a>
       <header className="site-header">
         <a className="wordmark" href="#/" aria-label="UI home">
-          <span className="brand-mark">ui</span>
+          <span className="brand-mark">
+            <CobaltMark />
+          </span>
           <span>
-            UI <span className="wordmark-secondary">/ reference</span>
+            Cobalt <span className="wordmark-secondary">/ UI</span>
           </span>
         </a>
         <div className="header-tools">
-          <Badge>v0.1.0</Badge>
+          <Badge>
+            <span className="release-dot" />
+            v0.1.0
+          </Badge>
           <Button
             variant="ghost"
             size="sm"
             aria-label={`Switch to ${theme === "light" ? "dark" : "light"} theme`}
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
-            {theme === "light" ? "☾" : "☀"}{" "}
+            <svg
+              aria-hidden="true"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              {theme === "light" ? (
+                <path d="M20 14a8 8 0 0 1-10-10A8.5 8.5 0 1 0 20 14Z" />
+              ) : (
+                <>
+                  <circle cx="12" cy="12" r="3.5" />
+                  <path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5" />
+                </>
+              )}
+            </svg>{" "}
             <span className="theme-text">
               {theme === "light" ? "Dark" : "Light"}
             </span>
@@ -119,7 +223,10 @@ function App() {
       </header>
       <div className="site-shell">
         <aside className="sidebar">
-          <div className="sidebar-title">LIBRARY</div>
+          <div className="sidebar-title">
+            <span>EXPLORER</span>
+            <span>01—07</span>
+          </div>
           <nav aria-label="Component categories">
             {["All", ...categories].map((cat) => (
               <button
@@ -128,7 +235,16 @@ function App() {
                 onClick={() => filter(cat)}
                 aria-pressed={category === cat && !selected}
               >
-                <span>{cat === "All" ? "All components" : cat}</span>
+                <span>
+                  <span className="category-symbol" aria-hidden="true">
+                    {cat === "All"
+                      ? "◈"
+                      : ["↗", "⌘", "↳", "▱", "◌", "▦", "⊞"][
+                          categories.indexOf(cat as (typeof categories)[number])
+                        ]}
+                  </span>
+                  {cat === "All" ? "All components" : cat}
+                </span>
                 <span className="nav-count">
                   {cat === "All"
                     ? registry.length
@@ -167,15 +283,50 @@ function App() {
             />
           ) : (
             <>
-              <div className="page-eyebrow">THE COMPONENT LIBRARY</div>
-              <div className="page-heading">
-                <div>
-                  <h1>Small pieces. Shared foundations.</h1>
-                  <p>Reusable components for the things you build.</p>
+              <div className="collection-intro" onPointerMove={trackPointer}>
+                <div className="intro-copy">
+                  <div className="page-eyebrow">
+                    <span className="eyebrow-line" /> COBALT / INTERFACE SYSTEM
+                  </div>
+                  <h1>
+                    The interface
+                    <br />
+                    <span>collection.</span>
+                    <sup>✳</sup>
+                  </h1>
+                  <p>
+                    Small, considered pieces. Made to work together.
+                    <br />A shared foundation for your next interface.
+                  </p>
+                  <div className="intro-spec">
+                    <span>REACT + TYPESCRIPT</span>
+                    <span className="spec-divider" />
+                    <span>OPEN SOURCE</span>
+                  </div>
                 </div>
-                <span className="component-total">
-                  {registry.length} components
-                </span>
+                <div className="system-art" aria-hidden="true">
+                  <div className="art-orbit orbit-one" />
+                  <div className="art-orbit orbit-two" />
+                  <div className="art-core">
+                    <CobaltMark />
+                  </div>
+                  <span className="art-cross cross-one">+</span>
+                  <span className="art-cross cross-two">+</span>
+                  <span className="art-coordinate">CO / UI — 001</span>
+                  <div className="art-label">
+                    <span className="small-dot" /> READY TO BUILD
+                  </div>
+                </div>
+                <div className="intro-bottom">
+                  <span>
+                    <strong>{registry.length}</strong> components{" "}
+                    <span className="intro-slash">/</span> <strong>07</strong>{" "}
+                    categories
+                  </span>
+                  <span>
+                    EXPLORE THE SYSTEM <span aria-hidden="true">↓</span>
+                  </span>
+                </div>
               </div>
               <div className="catalog-toolbar">
                 <SearchInput
@@ -184,7 +335,9 @@ function App() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
-                <span className="toolbar-hint">React + TypeScript</span>
+                <span className="toolbar-hint">
+                  <kbd>/</kbd> FIND YOUR BUILDING BLOCK
+                </span>
               </div>
               <nav className="category-tabs" aria-label="Filter components">
                 {["All", ...categories].map((cat) => (
@@ -202,11 +355,18 @@ function App() {
                 <span role="status">{shown.length} components</span>
               </div>
               {shown.length ? (
-                <div className="component-grid">
-                  {shown.map((c) => (
+                <div className="component-grid" ref={gridRef}>
+                  {shown.map((c, index) => (
                     <article
                       key={c.slug}
                       className="gallery-card"
+                      data-category={c.category}
+                      style={
+                        {
+                          "--reveal-delay": `${Math.min(index % 3, 2) * 65}ms`,
+                        } as CSSProperties
+                      }
+                      onPointerMove={trackPointer}
                       onClick={(e) => {
                         if (
                           !(e.target as HTMLElement).closest(
@@ -217,7 +377,29 @@ function App() {
                       }}
                     >
                       <div className="gallery-preview">
+                        <span className="preview-index" aria-hidden="true">
+                          {String(registry.indexOf(c) + 1).padStart(2, "0")}
+                        </span>
+                        <span className="preview-corner" aria-hidden="true">
+                          +
+                        </span>
                         <Preview name={c.name} />
+                        <span
+                          className="preview-interaction"
+                          aria-hidden="true"
+                        >
+                          {c.category === "Inputs"
+                            ? "Try an input"
+                            : c.name === "Tooltip"
+                              ? "Hover or focus"
+                              : c.name === "ContextMenu"
+                                ? "Right-click / Shift + F10"
+                                : c.category === "Actions" ||
+                                    c.category === "Overlays" ||
+                                    c.category === "Navigation"
+                                  ? "Try it out"
+                                  : "Live preview"}
+                        </span>
                       </div>
                       <div className="gallery-card-info">
                         <div className="card-heading">
@@ -250,8 +432,10 @@ function App() {
                 />
               )}
               <footer className="site-footer">
-                <span>Cobalt UI · Open foundations for the web.</span>
-                <span>Accessible by design. Yours to customize.</span>
+                <span className="footer-brand">
+                  <CobaltMark /> COBALT / UI
+                </span>
+                <span>Built with intent. Ready for what you make.</span>
               </footer>
             </>
           )}
