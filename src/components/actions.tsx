@@ -3,6 +3,7 @@ import {
   type ButtonHTMLAttributes,
   type HTMLAttributes,
 } from "react";
+import { LoaderCircle } from "lucide-react";
 import { Toggle as RToggle, Switch as RSwitch, ToggleGroup } from "radix-ui";
 export type Size = "sm" | "md" | "lg";
 export type Tone = "neutral" | "success" | "warning" | "danger";
@@ -11,10 +12,22 @@ export const cx = (...values: (string | undefined | false)[]) =>
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "destructive";
   size?: Size;
+  loading?: boolean;
+  loadingLabel?: string;
 }
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(
-    { variant = "primary", size = "md", className, type = "button", ...props },
+    {
+      variant = "primary",
+      size = "md",
+      className,
+      type = "button",
+      loading = false,
+      loadingLabel,
+      disabled,
+      children,
+      ...props
+    },
     ref,
   ) {
     return (
@@ -25,7 +38,18 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         data-variant={variant}
         data-size={size}
         {...props}
-      />
+        disabled={disabled || loading}
+        aria-busy={loading || undefined}
+      >
+        {loading && (
+          <LoaderCircle
+            size={15}
+            className="ui-button-spinner"
+            aria-hidden="true"
+          />
+        )}
+        {loading && loadingLabel ? loadingLabel : children}
+      </button>
     );
   },
 );

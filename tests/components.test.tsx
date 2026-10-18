@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { cleanup, render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef } from "react";
@@ -6,7 +6,6 @@ import {
   Button,
   Dialog,
   AlertDialog,
-  DropdownMenu,
   Tabs,
   Input,
   ProgressBar,
@@ -29,7 +28,7 @@ it("renders every registered component without throwing", () => {
     expect(view.container.querySelector(".demo-content")).toBeTruthy();
     cleanup();
   }
-  expect(registry.length).toBe(46);
+  expect(registry.length).toBe(68);
   expect(new Set(registry.map((c) => c.slug)).size).toBe(registry.length);
 });
 it("forwards native props and refs and respects disabled actions", async () => {
@@ -148,4 +147,18 @@ it("clamps progress values and disables pagination boundaries", () => {
   );
   fireEvent.click(screen.getByText("Next"));
   expect(page).toHaveBeenCalledWith(2);
+});
+
+it("loading buttons expose busy state and prevent duplicate activation", async () => {
+  const click = vi.fn();
+  render(
+    <Button loading loadingLabel="Saving changes" onClick={click}>
+      Save
+    </Button>,
+  );
+  const button = screen.getByRole("button", { name: "Saving changes" });
+  expect(button.getAttribute("aria-busy")).toBe("true");
+  expect((button as HTMLButtonElement).disabled).toBe(true);
+  await userEvent.click(button);
+  expect(click).not.toHaveBeenCalled();
 });

@@ -1,5 +1,7 @@
 import { useId, useState } from "react";
 import * as UI from "@cobalt/ui";
+import { Plus, Ellipsis } from "lucide-react";
+import { PatternPreview } from "./pattern-previews";
 import type { ComponentName } from "../../src/registry";
 export interface PreviewOptions {
   size: UI.Size;
@@ -84,14 +86,14 @@ export function Preview({
             disabled={disabled}
             onClick={() => setAction("Item added")}
           >
-            +
+            <Plus size={16} aria-hidden="true" />
           </UI.IconButton>
           <UI.IconButton
             aria-label="More options"
             variant="secondary"
             disabled={disabled}
           >
-            ⋯
+            <Ellipsis size={16} aria-hidden="true" />
           </UI.IconButton>
         </UI.Inline>
       );
@@ -335,7 +337,7 @@ export function Preview({
     case "DropdownMenu":
       preview = (
         <UI.DropdownMenu
-          trigger={trigger("Actions ▾")}
+          trigger={trigger("Actions")}
           items={menu}
           label="Item actions"
         />
@@ -352,7 +354,7 @@ export function Preview({
       preview = (
         <UI.Tooltip content="Add a new item">
           <UI.IconButton aria-label="Add item" variant="secondary">
-            +
+            <Plus size={16} aria-hidden="true" />
           </UI.IconButton>
         </UI.Tooltip>
       );
@@ -559,6 +561,30 @@ export function Preview({
         </UI.SplitView>
       );
       break;
+    case "OTPInput":
+    case "PasswordInput":
+    case "FormField":
+    case "InputGroup":
+    case "CopyField":
+    case "RecoveryCodes":
+    case "DeviceSession":
+    case "SettingsRow":
+    case "Accordion":
+    case "Stepper":
+    case "OptionCard":
+    case "FileUpload":
+    case "StatCard":
+    case "FeatureCard":
+    case "AppShell":
+    case "PageHeader":
+    case "AuthPanel":
+    case "SiteHeader":
+    case "SiteFooter":
+    case "MediaGallery":
+    case "ColorPicker":
+    case "HotkeyInput":
+      preview = <PatternPreview name={name} disabled={disabled} />;
+      break;
     default: {
       const exhaustive: never = name;
       throw new Error(`Missing preview: ${exhaustive}`);
@@ -578,6 +604,45 @@ export function Preview({
   );
 }
 export function Variants({ name }: { name: ComponentName }) {
+  if (name === "OTPInput")
+    return (
+      <UI.Stack gap={5}>
+        <UI.OTPInput label="Empty code" />
+        <UI.OTPInput label="Completed code" defaultValue="123456" />
+        <UI.OTPInput label="Invalid code" defaultValue="000000" invalid />
+        <UI.OTPInput
+          label="Four-digit code"
+          length={4}
+          separatorAfter={0}
+          defaultValue="1234"
+        />
+        <UI.OTPInput label="Disabled code" disabled defaultValue="123456" />
+        <UI.OTPInput label="Read-only code" readOnly defaultValue="123456" />
+      </UI.Stack>
+    );
+  if (name === "FormField")
+    return (
+      <UI.Stack>
+        <UI.FormField label="Email" hint="A linked hint.">
+          {(field) => (
+            <UI.Input {...field} type="email" placeholder="you@example.com" />
+          )}
+        </UI.FormField>
+        <UI.FormField label="Email with error" error="Enter a valid email.">
+          {(field) => (
+            <UI.Input {...field} type="email" defaultValue="invalid" />
+          )}
+        </UI.FormField>
+      </UI.Stack>
+    );
+  if (name === "PasswordInput")
+    return (
+      <UI.Stack>
+        <PatternPreview name={name} />
+        <PatternPreview name={name} disabled />
+      </UI.Stack>
+    );
+
   if (name === "Button" || name === "IconButton")
     return (
       <UI.Stack>
@@ -597,7 +662,7 @@ export function Variants({ name }: { name: ComponentName }) {
                     variant={v}
                     size={s}
                   >
-                    +
+                    <Plus size={16} aria-hidden="true" />
                   </UI.IconButton>
                 ),
               )}
@@ -605,6 +670,9 @@ export function Variants({ name }: { name: ComponentName }) {
           ),
         )}
         <UI.Button disabled>Disabled</UI.Button>
+        <UI.Button loading loadingLabel="Saving…">
+          Save changes
+        </UI.Button>
       </UI.Stack>
     );
   if (

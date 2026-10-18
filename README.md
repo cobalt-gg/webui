@@ -1,6 +1,6 @@
 # Cobalt UI
 
-A reusable React + TypeScript library (`@cobalt/ui`) and its static component reference site. The 46 generic primitives cover actions, inputs, navigation, overlays, feedback, display, and layout. Components contain no product branding. The gallery consumes the same source and metadata as the package; it has no backend, authentication, editing, publishing, analytics, or runtime API calls.
+A reusable React + TypeScript library (`@cobalt/ui`) and its static component reference site. The 68 generic components and patterns cover actions, inputs, navigation, overlays, feedback, display, and layout. Components contain no product branding. The gallery consumes the same source and metadata as the package; it has no backend, authentication, editing, publishing, analytics, or runtime API calls.
 
 ## Develop
 
@@ -38,7 +38,7 @@ To add a component:
 1. Add a typed component in `src/components/`, using native HTML semantics and token-based styles in `src/styles/components.css`. Forward relevant native attributes, support className, and use Radix for complicated keyboard/focus behavior.
 2. Export it from `src/index.ts`.
 3. Add metadata, an example, prop notes, and accessibility notes in `src/registry.ts`.
-4. Add its live preview in `site/src/previews.tsx`. The exhaustive switch causes typechecking to catch missing previews; the gallery, search, sidebar, and detail page pick up metadata automatically.
+4. Add its live preview in `site/src/previews.tsx`. The exhaustive switch causes typechecking to catch missing previews; the gallery, search, and detail page pick up metadata automatically.
 5. Add meaningful interaction tests for behavior, then run typecheck, tests, builds, and browser checks.
 
 The public entry point remains intentionally small; future component subpath exports can be added to the package export map without reorganizing the implementation.
@@ -52,7 +52,7 @@ npm run build:site    # static HTML and hashed assets → site/dist/
 npm run preview      # locally serve the built site
 ```
 
-`prepare` builds the UI during npm/Git installation. React and React DOM are peer dependencies, and are excluded from the library bundle. Radix is a runtime dependency. Only `dist/` is included in the installed package; the gallery is hosted separately. `styles.css` includes tokens and component CSS; `tokens.css` exposes the token defaults alone. Consumers need an ESM-compatible React toolchain.
+`prepare` builds the UI during npm/Git installation. React and React DOM are peer dependencies, and are excluded from the library bundle. Radix and Lucide React are runtime dependencies. Only `dist/` is included in the installed package; the gallery is hosted separately. `styles.css` includes tokens and component CSS; `tokens.css` exposes the token defaults alone. Consumers need an ESM-compatible React toolchain.
 
 ## Install from GitHub
 
@@ -60,6 +60,8 @@ After these changes have been committed and pushed to this repository:
 
 ```sh
 npm install github:cobalt-gg/webui
+# Current UI kit release:
+npm install github:cobalt-gg/webui#v0.2.0
 # Once a release tag exists:
 npm install github:cobalt-gg/webui#v1.0.0
 ```
@@ -129,7 +131,7 @@ Connect this GitHub repository to a **Cloudflare Pages** project:
 
 Cloudflare installs dependencies with npm. The lockfile is committed for reproducibility. No Pages Functions, server runtime, or database are required. For an existing Workers project, use the static-assets configuration below instead.
 
-The output is static HTML, CSS, JS, and `_headers`. Vite emits content-hashed assets; `_headers` grants those assets immutable caching. HTML retains Cloudflare's default update behavior. The site uses hash routes (`/#/button`), so component links and reloads work without rewrites or server routing on Pages or another static host. Assets use root-relative URLs, with no hardcoded development origin, externally hosted fonts, or image dependencies. Any Pages domain or custom domain such as `ui.cobaltlauncher.com` works at the domain root. Add the custom domain through Pages settings and follow Cloudflare's DNS instructions.
+The output is static HTML, CSS, JS, and `_headers`. Vite emits content-hashed assets; `_headers` grants those assets immutable caching. HTML retains Cloudflare's default update behavior. The site uses hash routes (`/#/button`), so component links and reloads work without rewrites or server routing on Pages or another static host. Assets use root-relative URLs, with no hardcoded development origin, externally hosted fonts, or runtime image services. Any Pages domain or custom domain such as `ui.cobaltlauncher.com` works at the domain root. Add the custom domain through Pages settings and follow Cloudflare's DNS instructions.
 
 Publishing the repository changes, creating release tags, connecting Pages, and configuring DNS are separate manual deployment steps. No live deployment is performed by the build scripts.
 
@@ -154,4 +156,51 @@ The deployment uploads static assets only. Hash routes and the generated `_heade
 
 The documentation site has its own Cobalt theme in `site/src/identity.css`, separate from the generic package defaults. Its warm charcoal (`#0e0e0d`, `#141413`), indigo (`#3b4275`, `#5a63a0`, `#8b93c9`), and text colors follow the tokens served by cobaltlauncher.com. Geist and JetBrains Mono are self-hosted in `site/public/fonts` with their SIL Open Font License files. The gallery defaults to dark mode and remembers the visitor's theme choice.
 
-Motion takes inspiration from bencho.dev's soft reveals and tactile micro-interactions: staggered card entrances, a geometric floating mark, pointer-positioned lighting, and gentle press/hover responses. No animation library or runtime dependency is added. Scroll reveals use IntersectionObserver with a visible fallback; reduced-motion preferences disable animation, transitions, and press scaling. Press `/` outside a form field to focus component search. These visual behaviors live in the gallery; library consumers retain their own theme and motion choices.
+The catalog stays compact: Components and Examples navigation, search, category filters, and live previews. Icons use Lucide React. Motion lives in the reusable components: button presses/loading indicators, switch thumb movement, OTP digit entry and errors, accordion expansion, tab panels, menus, sheets, and toast entrances. All respect `prefers-reduced-motion`. Set `data-ui-motion="reduce"` on a container to disable motion for its descendants as well. Press `/` outside a form field to focus component search.
+
+## Recreate the app with compositions
+
+Open **Examples** in the gallery. Each composition has working local interactions and copyable **React** and **Styles** source tabs. Appearance also includes its **Schema** JSON. Copy the example, `recipes.css`, and (for appearance) `appearance-schema.json` from `site/src/examples/`, install `lucide-react`, and import `@cobalt/ui/styles.css` once. The six examples are code-split so their implementation and source do not load with the initial catalog.
+
+| App pattern inspected                                          | Reusable components                                                          | Example route            |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------ |
+| Public overview, feature cards, screenshot lightbox, footer    | SiteHeader, PageHeader, FeatureCard, MediaGallery, Accordion, SiteFooter     | `/#/examples/website`    |
+| Signed-out, waitlisted, and approved screens                   | AuthPanel, Stepper, Badge, Alert, Button                                     | `/#/examples/waitlist`   |
+| Appearance schema and 14 settings                              | SettingsRow, SegmentedControl, ColorPicker, Slider, Select, Switch, AppShell | `/#/examples/appearance` |
+| Library filters, favorites, capture hotkeys, store connections | AppShell, NavigationItem, InputGroup, Card, HotkeyInput, SettingsRow         | `/#/examples/library`    |
+| Additional account security composition                        | OTPInput, PasswordInput, CopyField, RecoveryCodes, DeviceSession, Dialog     | `/#/examples/security`   |
+| Additional profile composition                                 | FormField, Input, PasswordInput, FileUpload, SettingsRow                     | `/#/examples/account`    |
+
+The public reference was inspected at app.cobaltlauncher.com: overview, screenshots, features, customization, and waitlist. The appearance JSON comes from its public `preview/preview.json`; all 14 fields are represented. The preview applies view, theme, accent/adaptive accent, color impact/reach, surfaces, scale, motion, contrast, vibrancy, light accent, and texture to shared components. Game auto-launch, recording engines, networking, and authentication are application services, not UI-library responsibilities.
+
+The security/profile examples are additional compositions, rather than claims about private account screens. They use intentionally fake local values (`123456` and `DEMO-1234`) to demonstrate accepted and rejected input. Bind authentication, uploads, and session revocation to your application's APIs when using these components. The documentation site sends no form data and uploads no selected files.
+
+### Verification codes
+
+```tsx
+import { useState } from "react";
+import { OTPInput, Button, AuthPanel } from "@cobalt/ui";
+import "@cobalt/ui/styles.css";
+
+export function VerifyExample() {
+  const [code, setCode] = useState("");
+  return (
+    <AuthPanel
+      title="Verify your account"
+      description="Use your authenticator app."
+    >
+      <OTPInput
+        label="Verification code"
+        name="code"
+        value={code}
+        onValueChange={setCode}
+      />
+      <Button disabled={code.length !== 6}>Continue</Button>
+    </AuthPanel>
+  );
+}
+```
+
+OTPInput uses a single native input for autofill (`one-time-code`), formatted paste, caret movement, selection, deletion, refs, and form submission. `length` defaults to six digits and supports 1–12; `separatorAfter` controls visual grouping. `onComplete` signals entry completion, not verified identity. Controlled and uncontrolled values, invalid, read-only, and disabled states are supported.
+
+FormField's render prop supplies `id`, `required`, `aria-describedby`, and `aria-invalid`, keeping hints and errors tied to the actual control. Button supports `loading` and `loadingLabel`, sets `aria-busy`, and prevents duplicate activation while loading. FileUpload checks configured types and size locally; production applications must also validate files server-side.

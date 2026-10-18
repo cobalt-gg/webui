@@ -1,0 +1,287 @@
+/* Optional composition layout helpers; component behavior and skins come from @cobalt/ui/styles.css. */
+.recipe-page {
+  display: grid;
+  gap: 28px;
+  padding: 25px;
+}
+.recipe-page > section,
+.recipe-page > div {
+  margin: 0;
+}
+.recipe-page > div[data-section] > div:first-child {
+  margin-bottom: 20px;
+}
+.recipe-page > div[data-section] .ui-media-grid {
+  margin-bottom: 0;
+}
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 15px;
+}
+.recipe-grid.two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.recipe-account {
+  max-width: 650px;
+  margin-inline: auto;
+  gap: 24px;
+}
+.recipe-account > .ui-button {
+  align-self: start;
+}
+.recipe-website {
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--ui-bg);
+}
+.recipe-website .ui-site-header {
+  padding: 18px 24px;
+}
+.recipe-website .ui-site-header > .ui-inline {
+  margin-left: auto;
+}
+.recipe-website .ui-page-header {
+  align-items: start;
+}
+.recipe-website .ui-page-header > div:first-child {
+  max-width: 550px;
+}
+.recipe-website .ui-site-footer {
+  margin-top: 25px;
+}
+.game-example-card {
+  display: grid;
+  gap: 12px;
+}
+.game-example-art {
+  height: 90px;
+  display: grid;
+  place-items: center;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  color: var(--ui-accent);
+}
+.game-example-card > .ui-inline {
+  justify-content: space-between;
+}
+.game-example-card > .ui-inline > strong {
+  font-size: 13px;
+}
+.game-example-card > .ui-button {
+  justify-self: start;
+}
+.appearance-recipe {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.appearance-controls section {
+  margin-top: 25px;
+}
+.appearance-controls section > h3 {
+  font-size: 12px;
+  color: var(--ui-text-muted);
+  border-bottom: 1px solid var(--ui-border);
+  padding-bottom: 12px;
+}
+.appearance-controls .ui-settings-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding: 16px 0;
+}
+.appearance-controls .ui-setting-control {
+  max-width: 100%;
+  margin-left: 0;
+}
+.appearance-controls .ui-setting-body p {
+  font-size: 11px;
+}
+.appearance-controls .ui-segmented {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+.appearance-controls .ui-segment {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+.appearance-controls .ui-switch {
+  flex-shrink: 0;
+}
+.appearance-controls .ui-select {
+  min-width: 150px;
+}
+.appearance-range {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 210px;
+}
+.appearance-range > output {
+  font: 11px var(--ui-font-mono);
+  min-width: 25px;
+  color: var(--ui-text-muted);
+}
+.appearance-preview {
+  position: sticky;
+  top: 90px;
+  min-width: 0;
+}
+.appearance-preview-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  margin-bottom: 13px;
+}
+.appearance-preview-label > span {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--ui-text-muted);
+}
+.appearance-viewport {
+  overflow: auto;
+  border: 1px solid var(--ui-border);
+  border-radius: 8px;
+}
+.appearance-canvas {
+  min-width: 420px;
+}
+.appearance-canvas .ui-app-shell {
+  border: 0;
+  grid-template-columns: 100px minmax(0, 1fr);
+  border-radius: 0;
+  min-height: 350px;
+}
+.appearance-canvas .ui-app-sidebar {
+  font-size: 11px;
+  padding: 12px 6px;
+}
+.appearance-canvas .ui-app-sidebar > strong {
+  font-size: 10px;
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  text-align: center;
+}
+.appearance-canvas .ui-nav-item {
+  font-size: 10px;
+  gap: 5px;
+  padding: 8px;
+}
+.appearance-canvas .ui-app-content {
+  padding: 18px;
+}
+.appearance-canvas .ui-app-header {
+  font-size: 11px;
+}
+.appearance-canvas .ui-page-header h2 {
+  font-size: 17px;
+}
+.appearance-canvas .ui-page-header p {
+  font-size: 11px;
+}
+.appearance-games {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.appearance-games > .ui-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  font-size: 11px;
+  align-items: start;
+}
+.appearance-games .ui-card > svg {
+  color: var(--recipe-accent);
+}
+.appearance-preview > .ui-field-hint {
+  margin-top: 12px;
+  font-size: 11px;
+}
+.appearance-canvas [data-view="casual"] .ui-app-shell {
+  grid-template-columns: 80px minmax(0, 1fr);
+}
+.appearance-canvas [data-view="casual"] .appearance-games {
+  grid-template-columns: 1fr;
+}
+.appearance-canvas [data-view="casual"] .appearance-games .ui-card {
+  padding: 20px;
+  gap: 18px;
+}
+.appearance-canvas [data-surface="gradient"] .ui-app-sidebar,
+.appearance-canvas [data-surface="gradient"] .ui-app-header {
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--recipe-accent) 35%, var(--ui-bg)),
+    var(--ui-surface)
+  );
+}
+.appearance-canvas [data-surface="glass"] .ui-app-sidebar,
+.appearance-canvas [data-surface="glass"] .ui-app-header {
+  background: color-mix(in srgb, var(--recipe-accent) 12%, transparent);
+  backdrop-filter: blur(12px);
+}
+.appearance-canvas [data-texture="noise"] .ui-app-body {
+  background-image: radial-gradient(var(--ui-border) 0.6px, transparent 0.6px);
+  background-size: 5px 5px;
+}
+.appearance-canvas [data-texture="grain"] .ui-app-body {
+  background-image: repeating-linear-gradient(
+    110deg,
+    transparent,
+    transparent 3px,
+    var(--ui-border) 3px,
+    var(--ui-border) 3.4px
+  );
+}
+.appearance-canvas [data-reach="minimal"] .ui-nav-item {
+  color: var(--ui-text);
+}
+.appearance-canvas [data-reach="everywhere"] .ui-card {
+  border-color: var(--ui-accent);
+}
+@media (max-width: 1000px) {
+  .appearance-recipe {
+    grid-template-columns: 1fr;
+  }
+  .appearance-preview {
+    position: static;
+    grid-row: 1;
+  }
+  .appearance-canvas {
+    min-width: 400px;
+  }
+}
+@media (max-width: 640px) {
+  .recipe-grid,
+  .recipe-grid.two {
+    grid-template-columns: 1fr;
+  }
+  .recipe-page {
+    padding: 16px;
+    gap: 22px;
+  }
+  .recipe-website .ui-site-header {
+    padding: 14px;
+  }
+  .recipe-website .ui-site-header > .ui-inline {
+    margin-left: 0;
+  }
+  .appearance-canvas .ui-app-shell {
+    grid-template-columns: 90px minmax(0, 1fr);
+  }
+  .appearance-canvas .ui-app-sidebar {
+    flex-direction: column;
+    border-right: 1px solid var(--ui-border);
+    border-bottom: 0;
+  }
+  .appearance-controls .ui-settings-row {
+    gap: 10px;
+  }
+}

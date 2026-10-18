@@ -6,7 +6,7 @@ test("gallery search, category filters, routes, and all previews", async ({
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.locator(".gallery-card")).toHaveCount(46);
+  await expect(page.locator(".gallery-card")).toHaveCount(registry.length);
   await page
     .getByRole("searchbox", { name: "Search components" })
     .fill("keyboard");
@@ -27,7 +27,9 @@ test("gallery search, category filters, routes, and all previews", async ({
     .getByRole("navigation", { name: "Filter components" })
     .getByRole("button", { name: "Layout", exact: true })
     .click();
-  await expect(page.locator(".gallery-card")).toHaveCount(5);
+  await expect(page.locator(".gallery-card")).toHaveCount(
+    registry.filter((c) => c.category === "Layout").length,
+  );
   for (const c of registry) {
     await page.goto(`/#/${c.slug}`);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(
@@ -139,5 +141,5 @@ test("theme, token overrides, reduced motion, focus, copy and small viewport", a
   await page.getByText("Skip to content").focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("main")).toBeFocused();
-  await expect(page.locator(".gallery-card")).toHaveCount(46);
+  await expect(page.locator(".gallery-card")).toHaveCount(registry.length);
 });

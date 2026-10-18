@@ -16,6 +16,11 @@ export const registry = [
     tags: ["button", "action", "click"],
     props: [
       {
+        name: "loading / loadingLabel",
+        description:
+          "boolean / string; disables activation and exposes busy state",
+      },
+      {
         name: "variant",
         description: "primary | secondary | ghost | destructive",
       },
@@ -1055,6 +1060,566 @@ export const registry = [
       "<SplitView><Panel>Sidebar</Panel><Panel>Content</Panel></SplitView>",
     accessibility:
       "Collapses to one column below 640px; DOM order remains the reading order.",
+  },
+  {
+    name: "OTPInput",
+    slug: "otp-input",
+    category: "Inputs",
+    description: "A native one-time-code input with animated digit slots.",
+    tags: ["otp", "2fa", "verification", "security", "code", "autofill"],
+    props: [
+      {
+        name: "label",
+        description: "string",
+      },
+      {
+        name: "length",
+        description: "number (1\u201312)",
+      },
+      {
+        name: "value / defaultValue",
+        description: "string",
+      },
+      {
+        name: "onValueChange",
+        description: "(code) => void",
+      },
+      {
+        name: "onComplete",
+        description: "(code) => void",
+      },
+      {
+        name: "invalid",
+        description: "boolean",
+      },
+      {
+        name: "separatorAfter",
+        description: "number",
+      },
+    ],
+    example:
+      '<OTPInput label="Verification code" value={code} onValueChange={setCode} onComplete={verifyCode} />',
+    accessibility:
+      "One native input supports autofill, paste, selection, arrows and form submission. Labels and errors should explain where to find the code. This component does not verify codes.",
+  },
+  {
+    name: "PasswordInput",
+    slug: "password-input",
+    category: "Inputs",
+    description: "A password field with an accessible visibility toggle.",
+    tags: ["password", "login", "security", "show", "hide"],
+    props: [
+      {
+        name: "Input props",
+        description: "Relevant native props",
+      },
+      {
+        name: "autoComplete",
+        description: "current-password | new-password",
+      },
+    ],
+    example:
+      '<PasswordInput aria-label="Password" autoComplete="current-password" />',
+    accessibility:
+      "Visibility toggle exposes aria-pressed. Password-manager autocomplete is preserved.",
+  },
+  {
+    name: "FormField",
+    slug: "form-field",
+    category: "Inputs",
+    description: "Connects a label, hint, error and native form control.",
+    tags: ["form", "validation", "label", "error"],
+    props: [
+      {
+        name: "label",
+        description: "string",
+      },
+      {
+        name: "hint / error",
+        description: "string",
+      },
+      {
+        name: "required",
+        description: "boolean",
+      },
+      {
+        name: "children",
+        description: "(binding) => ReactNode",
+      },
+    ],
+    example:
+      '<FormField label="Email" hint="Use your account email." required>{field => <Input {...field} type="email" />}</FormField>',
+    accessibility:
+      "The binding supplies id, required, aria-describedby and aria-invalid. Errors have an alert role.",
+  },
+  {
+    name: "InputGroup",
+    slug: "input-group",
+    category: "Inputs",
+    description: "Adds leading icons or trailing actions to a field.",
+    tags: ["input", "adornment", "icon", "search"],
+    props: [
+      {
+        name: "leading / trailing",
+        description: "ReactNode",
+      },
+      {
+        name: "children",
+        description: "input element",
+      },
+    ],
+    example:
+      '<InputGroup leading={<Search size={16} aria-hidden="true" />}><Input aria-label="Search games" /></InputGroup>',
+    accessibility:
+      "Label the nested input. Label any interactive trailing controls separately.",
+  },
+  {
+    name: "CopyField",
+    slug: "copy-field",
+    category: "Data",
+    description: "Displays a value with an announced copy action.",
+    tags: ["copy", "clipboard", "token", "key"],
+    props: [
+      {
+        name: "value / label",
+        description: "string",
+      },
+      {
+        name: "masked",
+        description: "boolean",
+      },
+      {
+        name: "onCopy",
+        description: "() => void",
+      },
+    ],
+    example: '<CopyField label="Example setup key" value="DEMO-KEY-ONLY" />',
+    accessibility:
+      "Copy success and failure are announced. Masking only hides presentation; do not pass secrets to untrusted clients.",
+  },
+  {
+    name: "RecoveryCodes",
+    slug: "recovery-codes",
+    category: "Data",
+    description: "An explicit reveal for a set of backup codes.",
+    tags: ["2fa", "recovery", "backup", "security", "codes"],
+    props: [
+      {
+        name: "codes",
+        description: "string[]",
+      },
+      {
+        name: "label",
+        description: "string",
+      },
+      {
+        name: "defaultRevealed",
+        description: "boolean",
+      },
+    ],
+    example: '<RecoveryCodes codes={["DEMO-1234", "DEMO-5678"]} />',
+    accessibility:
+      "Reveal exposes expanded state and controls relationship. Generate, store and invalidate real codes in your authentication system.",
+  },
+  {
+    name: "DeviceSession",
+    slug: "device-session",
+    category: "Data",
+    description: "A device session row with an optional sign-out action.",
+    tags: ["device", "session", "security", "account", "logout"],
+    props: [
+      {
+        name: "device / details",
+        description: "string",
+      },
+      {
+        name: "current",
+        description: "boolean",
+      },
+      {
+        name: "onRevoke",
+        description: "() => void",
+      },
+      {
+        name: "revoking",
+        description: "boolean",
+      },
+    ],
+    example:
+      '<DeviceSession device="Firefox on Linux" details="Last active today" onRevoke={revokeSession} />',
+    accessibility:
+      "The revoke button includes the device name in its label. Current sessions omit the revoke action.",
+  },
+  {
+    name: "SettingsRow",
+    slug: "settings-row",
+    category: "Layout",
+    description: "A setting description paired with a control.",
+    tags: ["settings", "appearance", "toggle", "preferences"],
+    props: [
+      {
+        name: "title / description",
+        description: "string",
+      },
+      {
+        name: "icon / control",
+        description: "ReactNode",
+      },
+    ],
+    example:
+      '<SettingsRow title="Notifications" description="Show desktop alerts." control={<Switch label="Enable notifications" />} />',
+    accessibility:
+      "Controls need their own accessible name. The row uses a responsive layout without changing reading order.",
+  },
+  {
+    name: "Accordion",
+    slug: "accordion",
+    category: "Data",
+    description: "Keyboard-accessible expanding content sections.",
+    tags: ["faq", "disclosure", "expand", "keyboard"],
+    props: [
+      {
+        name: "items",
+        description: "{value,title,content,disabled?}[]",
+      },
+      {
+        name: "value / defaultValue",
+        description: "string",
+      },
+      {
+        name: "onValueChange",
+        description: "(value) => void",
+      },
+    ],
+    example:
+      '<Accordion items={[{value:"privacy",title:"Where is my library stored?",content:"On your device."}]} />',
+    accessibility:
+      "Radix manages expanded state, content relationships and arrow/Home/End navigation. Height animation respects reduced motion.",
+  },
+  {
+    name: "Stepper",
+    slug: "stepper",
+    category: "Navigation",
+    description: "Shows current and completed steps in a flow.",
+    tags: ["steps", "onboarding", "progress", "waitlist"],
+    props: [
+      {
+        name: "steps",
+        description: "string[]",
+      },
+      {
+        name: "currentStep",
+        description: "zero-based number",
+      },
+      {
+        name: "label",
+        description: "string",
+      },
+    ],
+    example:
+      '<Stepper label="Setup progress" steps={["Account", "Verify", "Done"]} currentStep={1} />',
+    accessibility:
+      'Current step uses aria-current="step" and completed steps include accessible text. This is a status indicator, not navigation.',
+  },
+  {
+    name: "OptionCard",
+    slug: "option-card",
+    category: "Inputs",
+    description: "A native radio option with a selectable card surface.",
+    tags: ["radio", "option", "appearance", "layout", "selection"],
+    props: [
+      {
+        name: "title / description",
+        description: "string",
+      },
+      {
+        name: "icon",
+        description: "ReactNode",
+      },
+      {
+        name: "native input props except type",
+        description: "Relevant native props",
+      },
+    ],
+    example:
+      '<OptionCard name="layout" value="workspace" title="Workspace" description="A compact, focused layout." />',
+    accessibility:
+      "Use a shared name inside a labelled fieldset. Native radio arrow navigation and form submission are preserved.",
+  },
+  {
+    name: "FileUpload",
+    slug: "file-upload",
+    category: "Inputs",
+    description: "A keyboard-accessible upload chooser and drop target.",
+    tags: ["upload", "file", "avatar", "image", "drag", "drop"],
+    props: [
+      {
+        name: "label / description",
+        description: "string",
+      },
+      {
+        name: "accept",
+        description: "string",
+      },
+      {
+        name: "maxBytes",
+        description: "number",
+      },
+      {
+        name: "onFilesChange",
+        description: "(files) => void",
+      },
+      {
+        name: "disabled",
+        description: "boolean",
+      },
+    ],
+    example:
+      '<FileUpload label="Profile image" accept="image/*" maxBytes={2097152} onFilesChange={setFiles} />',
+    accessibility:
+      "The native input and Browse button both work by keyboard. Errors are announced. File validation here is client-side only; validate uploads on your server.",
+  },
+  {
+    name: "StatCard",
+    slug: "stat-card",
+    category: "Data",
+    description: "A numeric summary with contextual detail.",
+    tags: ["statistics", "playtime", "library", "metric"],
+    props: [
+      {
+        name: "label / value",
+        description: "string",
+      },
+      {
+        name: "detail",
+        description: "string",
+      },
+      {
+        name: "icon",
+        description: "ReactNode",
+      },
+    ],
+    example:
+      '<StatCard label="Games in your library" value="128" detail="Across 4 stores" />',
+    accessibility:
+      "Labels and values are rendered as text. Use a meaningful parent heading for groups of statistics.",
+  },
+  {
+    name: "FeatureCard",
+    slug: "feature-card",
+    category: "Data",
+    description: "An icon, heading and description for a feature.",
+    tags: ["feature", "marketing", "card", "overview"],
+    props: [
+      {
+        name: "title / description",
+        description: "string",
+      },
+      {
+        name: "icon / action",
+        description: "ReactNode",
+      },
+    ],
+    example:
+      '<FeatureCard icon={<Library size={20} />} title="One library" description="All your games, together." />',
+    accessibility:
+      "Icons are decorative. Use a descriptive action when making a card actionable.",
+  },
+  {
+    name: "AppShell",
+    slug: "app-shell",
+    category: "Layout",
+    description: "A responsive application frame with navigation and header.",
+    tags: ["shell", "sidebar", "dashboard", "layout", "app"],
+    props: [
+      {
+        name: "sidebar / header",
+        description: "ReactNode",
+      },
+      {
+        name: "sidebarLabel",
+        description: "string",
+      },
+      {
+        name: "children",
+        description: "ReactNode",
+      },
+    ],
+    example:
+      '<AppShell sidebar={<NavigationItem href="/library">Library</NavigationItem>} header="Your library"><p>Page content</p></AppShell>',
+    accessibility:
+      "Sidebar is a labelled navigation landmark. Add your main landmark at the application level; this component can also be safely embedded in a preview.",
+  },
+  {
+    name: "PageHeader",
+    slug: "page-header",
+    category: "Layout",
+    description: "A page title and supporting actions.",
+    tags: ["heading", "title", "toolbar", "page"],
+    props: [
+      {
+        name: "title / description / eyebrow",
+        description: "string",
+      },
+      {
+        name: "actions",
+        description: "ReactNode",
+      },
+    ],
+    example:
+      '<PageHeader title="Library" description="All your games, in one place." actions={<Button>Add game</Button>} />',
+    accessibility:
+      "Uses an h2 so it can be composed under an application heading. Actions remain semantic buttons or links.",
+  },
+  {
+    name: "AuthPanel",
+    slug: "auth-panel",
+    category: "Layout",
+    description: "A content frame for account and verification flows.",
+    tags: ["auth", "login", "2fa", "waitlist", "panel"],
+    props: [
+      {
+        name: "title / description",
+        description: "string",
+      },
+      {
+        name: "icon / footer",
+        description: "ReactNode",
+      },
+      {
+        name: "children",
+        description: "ReactNode",
+      },
+    ],
+    example:
+      '<AuthPanel title="Check your authenticator" description="Enter the six-digit code."><OTPInput label="Verification code" /></AuthPanel>',
+    accessibility:
+      "Presentation only. Wrap fields in a real form and implement authentication and submission in the consuming application.",
+  },
+  {
+    name: "SiteHeader",
+    slug: "site-header",
+    category: "Navigation",
+    description: "A responsive website header with navigation and actions.",
+    tags: ["header", "marketing", "website", "navigation"],
+    props: [
+      {
+        name: "brand",
+        description: "ReactNode",
+      },
+      {
+        name: "links",
+        description: "{label,href,active?}[]",
+      },
+      {
+        name: "actions",
+        description: "ReactNode",
+      },
+      {
+        name: "navigationLabel",
+        description: "string",
+      },
+    ],
+    example:
+      '<SiteHeader brand="Your project" links={[{label:"Features",href:"/features"}]} actions={<Button>Get started</Button>} />',
+    accessibility:
+      "Navigation has an accessible label and current links use aria-current. Links remain visible and wrap on small screens.",
+  },
+  {
+    name: "SiteFooter",
+    slug: "site-footer",
+    category: "Navigation",
+    description: "A compact footer with links and copyright.",
+    tags: ["footer", "website", "marketing", "links"],
+    props: [
+      {
+        name: "brand",
+        description: "ReactNode",
+      },
+      {
+        name: "links",
+        description: "SiteLink[]",
+      },
+      {
+        name: "copyright",
+        description: "string",
+      },
+    ],
+    example:
+      '<SiteFooter brand="Your project" links={[{label:"Privacy",href:"/privacy"}]} copyright="\u00a9 2026 Your project" />',
+    accessibility:
+      "Uses a footer landmark and a labelled link navigation region.",
+  },
+  {
+    name: "MediaGallery",
+    slug: "media-gallery",
+    category: "Data",
+    description: "Screenshot thumbnails with a keyboard-controlled lightbox.",
+    tags: ["screenshot", "image", "gallery", "lightbox", "dialog"],
+    props: [
+      {
+        name: "items",
+        description: "{src,alt,title,description?}[]",
+      },
+      {
+        name: "label",
+        description: "string",
+      },
+    ],
+    example:
+      '<MediaGallery label="Product screenshots" items={[{src:"/library.webp",alt:"Game library grid",title:"Library"}]} />',
+    accessibility:
+      "Thumbnail buttons open a Radix dialog. Escape closes, arrows change images, focus returns to the original thumbnail. Supply meaningful image alt text.",
+  },
+  {
+    name: "ColorPicker",
+    slug: "color-picker",
+    category: "Inputs",
+    description: "A native color input with selectable palette presets.",
+    tags: ["color", "accent", "appearance", "palette", "theme"],
+    props: [
+      {
+        name: "label / value",
+        description: "string",
+      },
+      {
+        name: "onValueChange",
+        description: "(color) => void",
+      },
+      {
+        name: "presets",
+        description: "string[]",
+      },
+    ],
+    example:
+      '<ColorPicker label="Accent color" value={accent} onValueChange={setAccent} />',
+    accessibility:
+      "Native color input is labelled. Preset buttons expose their selected state and color value.",
+  },
+  {
+    name: "HotkeyInput",
+    slug: "hotkey-input",
+    category: "Inputs",
+    description: "Records a keyboard shortcut without trapping focus.",
+    tags: ["shortcut", "hotkey", "keyboard", "capture"],
+    props: [
+      {
+        name: "label / value",
+        description: "string",
+      },
+      {
+        name: "onValueChange",
+        description: "(shortcut) => void",
+      },
+      {
+        name: "disabled",
+        description: "boolean",
+      },
+    ],
+    example:
+      '<HotkeyInput label="Save clip shortcut" value={hotkey} onValueChange={setHotkey} />',
+    accessibility:
+      "Activate to record. Escape cancels and Tab exits. Application-level shortcut conflict detection and registration are the consumer\u2019s responsibility.",
   },
 ] as const;
 export type ComponentEntry = (typeof registry)[number];

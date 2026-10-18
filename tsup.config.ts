@@ -5,6 +5,12 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  external: ["react", "react-dom", "react/jsx-runtime", "radix-ui"],
+  external: [
+    "react",
+    "react-dom",
+    "react/jsx-runtime",
+    "radix-ui",
+    "lucide-react",
+  ],
   treeshake: true,
 });

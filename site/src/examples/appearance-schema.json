@@ -1,0 +1,312 @@
+{
+  "sections": [
+    {
+      "id": "appearance-app-view",
+      "title": "App view",
+      "fields": [
+        {
+          "id": "appearance.appView",
+          "type": "segment",
+          "label": "App view",
+          "description": "Use Cobalt's current workspace or switch to a roomier, game-first casual layout.",
+          "default": "current",
+          "options": [
+            {
+              "value": "current",
+              "label": "Current"
+            },
+            {
+              "value": "casual",
+              "label": "Casual"
+            }
+          ],
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        }
+      ]
+    },
+    {
+      "id": "appearance-color-scheme",
+      "title": "Color scheme",
+      "fields": [
+        {
+          "id": "appearance.colorScheme",
+          "type": "segment",
+          "label": "Color scheme",
+          "description": "Match the system setting, or force Cobalt to stay light or dark.",
+          "default": "system",
+          "options": [
+            {
+              "value": "light",
+              "label": "Light"
+            },
+            {
+              "value": "dark",
+              "label": "Dark"
+            },
+            {
+              "value": "system",
+              "label": "System"
+            }
+          ],
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        }
+      ]
+    },
+    {
+      "id": "appearance-accent",
+      "title": "Accent color",
+      "fields": [
+        {
+          "id": "appearance.accentColor",
+          "type": "color",
+          "label": "Accent color",
+          "description": "Pick an accent color for Cobalt's built-in theme.",
+          "default": "#3b4275",
+          "presets": [
+            "#3b4275",
+            "#c2410c",
+            "#0f766e",
+            "#7c3aed",
+            "#be123c",
+            "#15803d",
+            "#0369a1",
+            "#a16207"
+          ],
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        },
+        {
+          "id": "appearance.colorImpact",
+          "type": "slider",
+          "label": "Color impact",
+          "description": "How strongly the accent color tints backgrounds, surfaces, and borders.",
+          "default": 0,
+          "min": 0,
+          "max": 60,
+          "step": 1,
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        },
+        {
+          "id": "appearance.accentReach",
+          "type": "segment",
+          "label": "Accent reach",
+          "description": "Minimal keeps the accent on primary controls only. Everywhere also tints borders, hover states, and highlights.",
+          "default": "balanced",
+          "options": [
+            {
+              "value": "minimal",
+              "label": "Minimal"
+            },
+            {
+              "value": "balanced",
+              "label": "Balanced"
+            },
+            {
+              "value": "everywhere",
+              "label": "Everywhere"
+            }
+          ],
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        },
+        {
+          "id": "appearance.adaptiveAccent",
+          "type": "toggle",
+          "label": "Adapt accent to game art",
+          "description": "While a game's page is open, borrow the accent from its artwork. Your own accent returns when you leave.",
+          "default": false,
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        }
+      ]
+    },
+    {
+      "id": "appearance-surfaces",
+      "title": "Surfaces",
+      "fields": [
+        {
+          "id": "appearance.surfaceStyle",
+          "type": "segment",
+          "label": "Surface style",
+          "description": "Flat keeps solid panels. Gradient washes title bars and sidebars with the accent. Glass makes them translucent over a soft accent glow.",
+          "default": "flat",
+          "options": [
+            {
+              "value": "flat",
+              "label": "Flat"
+            },
+            {
+              "value": "gradient",
+              "label": "Gradient"
+            },
+            {
+              "value": "glass",
+              "label": "Glass"
+            }
+          ],
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        }
+      ]
+    },
+    {
+      "id": "appearance-accessibility",
+      "title": "Accessibility",
+      "fields": [
+        {
+          "id": "appearance.interfaceScale",
+          "type": "select",
+          "label": "Interface scale",
+          "description": "Make everything in Cobalt's windows larger or smaller.",
+          "default": "100",
+          "options": [
+            {
+              "value": "90",
+              "label": "90%"
+            },
+            {
+              "value": "100",
+              "label": "100%"
+            },
+            {
+              "value": "110",
+              "label": "110%"
+            },
+            {
+              "value": "125",
+              "label": "125%"
+            }
+          ],
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        },
+        {
+          "id": "appearance.reduceMotion",
+          "type": "toggle",
+          "label": "Reduce motion",
+          "description": "Turn off animations and transitions. Cobalt also follows your computer's reduced-motion setting.",
+          "default": false,
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        },
+        {
+          "id": "appearance.contrast",
+          "type": "segment",
+          "label": "Contrast",
+          "description": "High contrast brightens secondary text and every border. System follows your computer's accessibility setting.",
+          "default": "system",
+          "options": [
+            {
+              "value": "system",
+              "label": "System"
+            },
+            {
+              "value": "standard",
+              "label": "Standard"
+            },
+            {
+              "value": "high",
+              "label": "High"
+            }
+          ],
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        }
+      ]
+    },
+    {
+      "id": "appearance-advanced",
+      "title": "Advanced",
+      "advanced": true,
+      "description": "Fine-tune how Cobalt uses your colors.",
+      "fields": [
+        {
+          "id": "appearance.vibrancy",
+          "type": "slider",
+          "label": "Accent vibrancy",
+          "description": "Mute or boost your accent without changing its hue.",
+          "default": 0,
+          "min": -50,
+          "max": 50,
+          "step": 1,
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        },
+        {
+          "id": "appearance.lightAccentEnabled",
+          "type": "toggle",
+          "label": "Different accent in light mode",
+          "description": "Use a separate accent while Cobalt is light, for colors that look washed out on white.",
+          "default": false,
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        },
+        {
+          "id": "appearance.lightAccentColor",
+          "type": "color",
+          "label": "Light mode accent",
+          "description": "Used instead of your accent color whenever Cobalt is in light mode.",
+          "default": "#3b4275",
+          "presets": [
+            "#3b4275",
+            "#c2410c",
+            "#0f766e",
+            "#7c3aed",
+            "#be123c",
+            "#15803d",
+            "#0369a1",
+            "#a16207"
+          ],
+          "visibleWhen": {
+            "field": "appearance.lightAccentEnabled",
+            "value": true
+          },
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        },
+        {
+          "id": "appearance.backgroundTexture",
+          "type": "segment",
+          "label": "Background texture",
+          "description": "Lay a subtle film texture over the whole window.",
+          "default": "none",
+          "options": [
+            {
+              "value": "none",
+              "label": "None"
+            },
+            {
+              "value": "noise",
+              "label": "Noise"
+            },
+            {
+              "value": "grain",
+              "label": "Grain"
+            }
+          ],
+          "instant": true,
+          "platforms": ["windows", "linux", "macos"]
+        }
+      ]
+    }
+  ],
+  "defaults": {
+    "appearance.appView": "current",
+    "appearance.colorScheme": "system",
+    "appearance.accentColor": "#3b4275",
+    "appearance.colorImpact": 0,
+    "appearance.accentReach": "balanced",
+    "appearance.adaptiveAccent": false,
+    "appearance.surfaceStyle": "flat",
+    "appearance.interfaceScale": "100",
+    "appearance.reduceMotion": false,
+    "appearance.contrast": "system",
+    "appearance.vibrancy": 0,
+    "appearance.lightAccentEnabled": false,
+    "appearance.lightAccentColor": "#3b4275",
+    "appearance.backgroundTexture": "none"
+  }
+}
