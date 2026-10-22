@@ -1,4 +1,5 @@
 export const categories = [
+  "Text",
   "Actions",
   "Inputs",
   "Navigation",
@@ -8,6 +9,94 @@ export const categories = [
   "Layout",
 ] as const;
 export const registry = [
+  {
+    name: "SplitText",
+    slug: "split-text",
+    category: "Text",
+    description:
+      "Reveals text letter by letter or word by word as it scrolls into view.",
+    tags: ["text", "animation", "reveal", "stagger", "headline"],
+    props: [
+      { name: "text", description: "string" },
+      { name: "by", description: "char | word" },
+      { name: "stagger / delay", description: "milliseconds" },
+      {
+        name: "whenVisible",
+        description: "boolean; wait until on screen (default true)",
+      },
+    ],
+    example: '<SplitText text="All your games in one place." />',
+    accessibility:
+      "The full string is exposed once to assistive technology; the animated pieces are hidden from it.",
+  },
+  {
+    name: "ScrambleText",
+    slug: "scramble-text",
+    category: "Text",
+    description:
+      "Decodes from random glyphs into the real text, and again on hover.",
+    tags: ["text", "animation", "decode", "glitch", "hacker"],
+    props: [
+      { name: "text", description: "string" },
+      { name: "duration", description: "milliseconds for the whole decode" },
+      { name: "replayOnHover", description: "boolean (default true)" },
+    ],
+    example: '<ScrambleText text="Ready to play" />',
+    accessibility:
+      "Screen readers get the final text only. With reduced motion the text appears without scrambling.",
+  },
+  {
+    name: "Typewriter",
+    slug: "typewriter",
+    category: "Text",
+    description:
+      "Types, pauses and deletes a rotating list of words with a blinking caret.",
+    tags: ["text", "animation", "typing", "rotate", "caret"],
+    props: [
+      { name: "words", description: "string[]" },
+      { name: "speed", description: "milliseconds per character" },
+      { name: "pause", description: "milliseconds a finished word stays" },
+    ],
+    example: '<Typewriter words={["Steam", "Epic", "GOG"]} />',
+    accessibility:
+      "All words are announced once as a list; the typing itself is hidden. Reduced motion shows the first word.",
+  },
+  {
+    name: "GradientText",
+    slug: "gradient-text",
+    category: "Text",
+    description: "Fills text with a slowly panning cobalt gradient.",
+    tags: ["text", "gradient", "headline", "color"],
+    props: [{ name: "animate", description: "boolean (default true)" }],
+    example: "<GradientText>One app instead of six</GradientText>",
+    accessibility:
+      "Plain text with a background clip, so it reads and selects normally. Check contrast on light themes.",
+  },
+  {
+    name: "ShinyText",
+    slug: "shiny-text",
+    category: "Text",
+    description: "Sweeps a soft highlight across muted text.",
+    tags: ["text", "shimmer", "shine", "loading"],
+    props: [{ name: "speed", description: "seconds per sweep (default 3)" }],
+    example: "<ShinyText>Now in closed preview</ShinyText>",
+    accessibility: "Plain text. The sweep stops with reduced motion.",
+  },
+  {
+    name: "CountUp",
+    slug: "count-up",
+    category: "Text",
+    description: "Counts a number up from zero when it scrolls into view.",
+    tags: ["text", "number", "counter", "stat", "animation"],
+    props: [
+      { name: "value", description: "number" },
+      { name: "duration", description: "milliseconds" },
+      { name: "decimals / prefix / suffix", description: "formatting" },
+    ],
+    example: '<CountUp value={128} suffix=" games" />',
+    accessibility:
+      "The final value is exposed to assistive technology straight away; only the visual digits count.",
+  },
   {
     name: "Button",
     slug: "button",

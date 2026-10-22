@@ -28,7 +28,7 @@ it("renders every registered component without throwing", () => {
     expect(view.container.querySelector(".demo-content")).toBeTruthy();
     cleanup();
   }
-  expect(registry.length).toBe(68);
+  expect(registry.length).toBe(74);
   expect(new Set(registry.map((c) => c.slug)).size).toBe(registry.length);
 });
 it("forwards native props and refs and respects disabled actions", async () => {

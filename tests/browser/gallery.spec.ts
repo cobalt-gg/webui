@@ -15,9 +15,9 @@ test("every component renders live on one page, with search and index", async ({
     registry.length,
   );
   for (const c of registry)
-    await expect(page.locator(`#${c.slug} > .component__head h3`)).toHaveText(
-      title(c.name),
-    );
+    await expect(
+      page.locator(`#${c.slug} > .component__head h3`),
+    ).toHaveAccessibleName(title(c.name));
 
   const search = page.getByRole("searchbox", { name: "Search components" });
   await search.fill("keyboard");

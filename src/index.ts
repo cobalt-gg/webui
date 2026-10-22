@@ -11,3 +11,4 @@ export * from "./components/security";
 export * from "./components/patterns";
 
 export * from "./components/site";
+export * from "./components/text";

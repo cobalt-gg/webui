@@ -1,6 +1,6 @@
 # Cobalt UI
 
-A reusable React + TypeScript library (`@cobalt/ui`) and its static component reference site. The 68 components and patterns cover actions, inputs, navigation, overlays, feedback, data, and layout. They share the Cobalt look from cobaltlauncher.com: graphite surfaces, one muted cobalt accent, Geist and JetBrains Mono, and hairline borders. The gallery consumes the same source and metadata as the package; it has no backend, authentication, editing, publishing, analytics, or runtime API calls.
+A reusable React + TypeScript library (`@cobalt/ui`) and its static component reference site. The 74 components and patterns cover text effects, actions, inputs, navigation, overlays, feedback, data, and layout. They share the Cobalt look from cobaltlauncher.com: graphite surfaces, one muted cobalt accent, Geist and JetBrains Mono, and hairline borders. The gallery consumes the same source and metadata as the package; it has no backend, authentication, editing, publishing, analytics, or runtime API calls.
 
 ## Develop
 
@@ -157,7 +157,7 @@ The deployment uploads static assets only. Hash routes and the generated `_heade
 
 The reference site and the package use the same tokens, taken from the UI kit served by cobaltlauncher.com: warm graphite (`#0e0e0d`, `#141413`, `#1a1a18`), cobalt (`#3b4275`, `#5a63a0`, `#8b93c9`), 10/14/20px radii, and short, flat motion. Geist and JetBrains Mono are self-hosted in `site/public/fonts` with their SIL Open Font License files; the package names them first in its font stack, so load them in your app to match.
 
-Motion lives in the components: button presses and loading indicators, switch thumbs, OTP entry and errors, accordions, tab panels, menus, sheets, and toasts. All respect `prefers-reduced-motion`. Set `data-ui-motion="reduce"` on a container to disable motion for its descendants as well.
+Every component animates: buttons sweep light and lift, switches and checkboxes spring, tabs grow their underline, menus stagger their items, dialogs blur in, progress bars flow, skeletons shimmer, status dots ping, selected option cards get an orbiting border, and more. The Text category adds `SplitText`, `ScrambleText`, `Typewriter`, `GradientText`, `ShinyText`, and `CountUp`; each exposes its final text to assistive technology once and hides the animated pieces. All respect `prefers-reduced-motion`. Set `data-ui-motion="reduce"` on a container to disable motion for its descendants as well.
 
 The security components use intentionally fake local values in the previews (`123456` and `DEMO-1234`). Bind authentication, uploads, and session revocation to your application's APIs when using them. The documentation site sends no form data and uploads no selected files.
 

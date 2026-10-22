@@ -58,6 +58,59 @@ export function Preview({
   ];
   let preview: React.ReactNode;
   switch (name) {
+    case "SplitText":
+      preview = (
+        <p className="demo-headline">
+          <UI.SplitText text="All your games in one place." />
+        </p>
+      );
+      break;
+    case "ScrambleText":
+      preview = (
+        <p className="demo-headline demo-mono">
+          <UI.ScrambleText text="READY TO PLAY" />
+        </p>
+      );
+      break;
+    case "Typewriter":
+      preview = (
+        <p className="demo-headline">
+          Play from <UI.Typewriter words={["Steam", "Epic", "GOG", "Xbox"]} />
+        </p>
+      );
+      break;
+    case "GradientText":
+      preview = (
+        <p className="demo-headline">
+          <UI.GradientText>One app instead of six</UI.GradientText>
+        </p>
+      );
+      break;
+    case "ShinyText":
+      preview = (
+        <p className="demo-headline">
+          <UI.ShinyText>Now in closed preview</UI.ShinyText>
+        </p>
+      );
+      break;
+    case "CountUp":
+      preview = (
+        <UI.Inline gap={6}>
+          <span className="demo-stat">
+            <UI.CountUp value={128} />
+            <small>games</small>
+          </span>
+          <span className="demo-stat">
+            <UI.CountUp value={4.2} decimals={1} suffix="k" />
+            <small>hours played</small>
+          </span>
+          <span className="demo-stat">
+            <UI.CountUp value={98} suffix="%" />
+            <small>achievements</small>
+          </span>
+        </UI.Inline>
+      );
+      break;
     case "Button":
       preview = (
         <UI.Inline>

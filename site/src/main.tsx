@@ -1,9 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { createRoot } from "react-dom/client";
 import {
   Button,
   CodeBlock,
+  CountUp,
   EmptyState,
+  GradientText,
+  ScrambleText,
+  ShinyText,
+  SplitText,
+  Typewriter,
   InputGroup,
   SearchInput,
   Table,
@@ -21,6 +33,7 @@ const INSTALL = "npm install github:cobalt-gg/webui";
 const REPO = "https://github.com/cobalt-gg/webui";
 
 const blurbs: Record<(typeof categories)[number], string> = {
+  Text: "Headlines that move: reveals, decodes, typing and shine.",
   Actions: "Buttons and switches. Labels are short verbs.",
   Inputs: "Native fields first, so keyboards and autofill just work.",
   Navigation: "Ways to move around: tabs, menus, headers and steps.",
@@ -203,7 +216,8 @@ function App() {
       <header className="site-header">
         <div className="site-header__inner">
           <a className="wordmark" href="#top" aria-label="Cobalt UI home">
-            cobalt<span>ui</span>
+            <ScrambleText text="cobalt" duration={500} />
+            <span>ui</span>
           </a>
           <nav className="site-nav" aria-label="Site">
             <a href="#components">Components</a>
@@ -218,11 +232,29 @@ function App() {
         </div>
       </header>
 
+      <div className="scroll-progress" aria-hidden="true" />
       <main id="top">
         <section className="hero container">
-          <span className="eyebrow">@cobalt/ui</span>
-          <h1>Every component in one place.</h1>
-          <p>
+          <div className="hero__glow" aria-hidden="true" />
+          <span className="eyebrow">
+            <ScrambleText text="@cobalt/ui" duration={900} />
+          </span>
+          <h1>
+            <SplitText text="Every component," stagger={32} />
+            <br />
+            <GradientText>
+              <Typewriter
+                words={[
+                  "in one place.",
+                  "animated.",
+                  "accessible.",
+                  "dark first.",
+                ]}
+                pause={2200}
+              />
+            </GradientText>
+          </h1>
+          <p className="hero__lede">
             The React kit behind Cobalt. {registry.length} components with
             graphite surfaces, one cobalt accent and native controls underneath.
             Everything below is live, so click around.
@@ -252,10 +284,16 @@ function App() {
           </div>
           <ul className="facts" aria-label="At a glance">
             <li>
-              <strong>{registry.length}</strong> components
+              <strong>
+                <CountUp value={registry.length} />
+              </strong>{" "}
+              components
             </li>
             <li>
-              <strong>{categories.length}</strong> categories
+              <strong>
+                <CountUp value={categories.length} duration={800} />
+              </strong>{" "}
+              categories
             </li>
             <li>React 18 &amp; 19</li>
             <li>Radix under the hood</li>
@@ -330,12 +368,16 @@ function App() {
                   aria-labelledby={`${cat}-title`}
                 >
                   <div className="category__head">
-                    <h2 id={`${cat}-title`}>{cat}</h2>
-                    <p>{blurbs[cat]}</p>
+                    <h2 id={`${cat}-title`}>
+                      <SplitText text={cat} stagger={45} />
+                    </h2>
+                    <p>
+                      <ShinyText speed={4}>{blurbs[cat]}</ShinyText>
+                    </p>
                   </div>
                   <div className="grid">
-                    {items.map((c) => (
-                      <ComponentCard key={c.slug} component={c} />
+                    {items.map((c, i) => (
+                      <ComponentCard key={c.slug} component={c} index={i} />
                     ))}
                   </div>
                 </section>
@@ -347,7 +389,9 @@ function App() {
         <section className="container" id="install">
           <div className="install">
             <div className="install__text">
-              <h2>Use it in your app</h2>
+              <h2>
+                <GradientText>Use it in your app</GradientText>
+              </h2>
               <p>
                 Install from GitHub, import the stylesheet once, and you're set.
                 No provider needed, except one for toasts.
@@ -391,20 +435,62 @@ function App() {
   );
 }
 
-function ComponentCard({ component: c }: { component: ComponentEntry }) {
+/** Fades a card up the first time it scrolls into view. */
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  const [revealed, setRevealed] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setRevealed(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, revealed] as const;
+}
+
+function ComponentCard({
+  component: c,
+  index,
+}: {
+  component: ComponentEntry;
+  index: number;
+}) {
   const [open, setOpen] = useState(false);
+  const [ref, revealed] = useReveal<HTMLElement>();
   const panel = `${c.slug}-details`;
   return (
     <article
+      ref={ref}
       id={c.slug}
       className="component"
       data-wide={wide.has(c.name) || undefined}
       data-open={open || undefined}
+      data-revealed={revealed || undefined}
+      style={{ "--i": index % 2 } as CSSProperties}
       aria-labelledby={`${c.slug}-title`}
+      onPointerMove={(e) => {
+        const box = e.currentTarget.getBoundingClientRect();
+        e.currentTarget.style.setProperty("--x", `${e.clientX - box.left}px`);
+        e.currentTarget.style.setProperty("--y", `${e.clientY - box.top}px`);
+      }}
     >
       <header className="component__head">
         <h3 id={`${c.slug}-title`}>
-          <a href={`#${c.slug}`}>{title(c.name)}</a>
+          <a href={`#${c.slug}`}>
+            <ScrambleText text={title(c.name)} duration={450} />
+          </a>
         </h3>
         <button
           type="button"
