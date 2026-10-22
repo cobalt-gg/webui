@@ -4,8 +4,15 @@ import {
   useState,
   type CSSProperties,
   type HTMLAttributes,
+  type MouseEvent,
 } from "react";
 import { cx } from "./actions";
+
+/*
+ * Text effects are still until someone clicks them, then play once. The text
+ * itself is always readable and selectable, and assistive technology reads the
+ * final string exactly once.
+ */
 
 const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=<>/";
 
@@ -17,64 +24,50 @@ function prefersReducedMotion() {
   );
 }
 
-/** Calls back once when the element first scrolls into view. */
-function useInView<T extends Element>(enabled = true) {
-  const ref = useRef<T>(null);
-  const [inView, setInView] = useState(!enabled);
-  useEffect(() => {
-    if (!enabled) return;
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
-      setInView(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.2 },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [enabled]);
-  return [ref, inView] as const;
+/** Restarts the element's CSS animation by toggling data-playing. */
+function replay(el: HTMLElement) {
+  el.removeAttribute("data-playing");
+  void el.offsetWidth;
+  el.setAttribute("data-playing", "");
 }
 
-export interface GradientTextProps extends HTMLAttributes<HTMLSpanElement> {
-  /** Slowly pans the gradient across the text. */
-  animate?: boolean;
+type ClickHandler = (event: MouseEvent<HTMLSpanElement>) => void;
+function withReplay(onClick?: ClickHandler): ClickHandler {
+  return (event) => {
+    replay(event.currentTarget);
+    onClick?.(event);
+  };
 }
+const stop = (event: { currentTarget: HTMLElement; target: EventTarget }) => {
+  if (event.target === event.currentTarget)
+    event.currentTarget.removeAttribute("data-playing");
+};
+
+export type GradientTextProps = HTMLAttributes<HTMLSpanElement>;
+/** Cobalt gradient text. Click to sweep the gradient across it. */
 export function GradientText({
-  animate = true,
   className,
+  onClick,
   ...props
 }: GradientTextProps) {
   return (
     <span
       className={cx("ui-gradient-text", className)}
-      data-animate={animate || undefined}
+      onClick={withReplay(onClick)}
+      onAnimationEnd={stop}
       {...props}
     />
   );
 }
 
-export interface ShinyTextProps extends HTMLAttributes<HTMLSpanElement> {
-  /** Seconds per sweep. */
-  speed?: number;
-}
-export function ShinyText({
-  speed = 3,
-  className,
-  style,
-  ...props
-}: ShinyTextProps) {
+export type ShinyTextProps = HTMLAttributes<HTMLSpanElement>;
+/** Muted text. Click to run a soft highlight across it. */
+export function ShinyText({ className, onClick, ...props }: ShinyTextProps) {
   return (
     <span
       className={cx("ui-shiny-text", className)}
-      style={{ "--ui-shine-speed": `${speed}s`, ...style } as CSSProperties}
+      onClick={withReplay(onClick)}
+      onAnimationEnd={stop}
       {...props}
     />
   );
@@ -88,46 +81,50 @@ export interface SplitTextProps extends Omit<
   by?: "char" | "word";
   /** Milliseconds between each piece. */
   stagger?: number;
-  /** Milliseconds before the first piece. */
-  delay?: number;
-  /** Wait until the text scrolls into view. */
-  whenVisible?: boolean;
 }
+/** Text split into pieces. Click to send a wave through them. */
 export function SplitText({
   text,
   by = "char",
-  stagger = 28,
-  delay = 0,
-  whenVisible = true,
+  stagger = 24,
   className,
+  onClick,
   ...props
 }: SplitTextProps) {
-  const [ref, inView] = useInView<HTMLSpanElement>(whenVisible);
   const words = text.split(" ");
   let index = 0;
   return (
     <span
-      ref={ref}
       className={cx("ui-split-text", className)}
-      data-visible={inView || undefined}
+      onClick={(event) => {
+        // Only the last piece's animation clears the flag.
+        replay(event.currentTarget);
+        onClick?.(event);
+      }}
+      onAnimationEnd={(event) => {
+        if ((event.target as HTMLElement).dataset.last !== undefined)
+          event.currentTarget.removeAttribute("data-playing");
+      }}
       {...props}
     >
       <span className="ui-sr-only">{text}</span>
       {words.map((word, w) => (
         <span key={w} className="ui-split-word" aria-hidden="true">
-          {(by === "word" ? [word] : Array.from(word)).map((piece, p) => (
-            <span
-              key={p}
-              className="ui-split-piece"
-              style={
-                {
-                  "--ui-delay": `${delay + index++ * stagger}ms`,
-                } as CSSProperties
-              }
-            >
-              {piece}
-            </span>
-          ))}
+          {(by === "word" ? [word] : Array.from(word)).map((piece, p, all) => {
+            const last = w === words.length - 1 && p === all.length - 1;
+            return (
+              <span
+                key={p}
+                className="ui-split-piece"
+                data-last={last || undefined}
+                style={
+                  { "--ui-delay": `${index++ * stagger}ms` } as CSSProperties
+                }
+              >
+                {piece}
+              </span>
+            );
+          })}
           {w < words.length - 1 && " "}
         </span>
       ))}
@@ -142,29 +139,25 @@ export interface ScrambleTextProps extends Omit<
   text: string;
   /** Milliseconds for the whole decode. */
   duration?: number;
-  /** Scramble again whenever the pointer enters. */
-  replayOnHover?: boolean;
 }
+/** Click to scramble the text and let it decode back into place. */
 export function ScrambleText({
   text,
-  duration = 700,
-  replayOnHover = true,
+  duration = 600,
   className,
-  onMouseEnter,
+  onClick,
   ...props
 }: ScrambleTextProps) {
-  const [ref, inView] = useInView<HTMLSpanElement>();
   const [shown, setShown] = useState(text);
   const frame = useRef(0);
+  useEffect(() => {
+    setShown(text);
+    return () => cancelAnimationFrame(frame.current);
+  }, [text]);
   function run() {
     cancelAnimationFrame(frame.current);
-    if (
-      prefersReducedMotion() ||
-      typeof requestAnimationFrame === "undefined"
-    ) {
-      setShown(text);
+    if (prefersReducedMotion() || typeof requestAnimationFrame === "undefined")
       return;
-    }
     const start = performance.now();
     const tick = (now: number) => {
       const progress = Math.min(1, (now - start) / duration);
@@ -180,18 +173,12 @@ export function ScrambleText({
     };
     frame.current = requestAnimationFrame(tick);
   }
-  useEffect(() => {
-    if (inView) run();
-    return () => cancelAnimationFrame(frame.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inView, text]);
   return (
     <span
-      ref={ref}
       className={cx("ui-scramble-text", className)}
-      onMouseEnter={(e) => {
-        onMouseEnter?.(e);
-        if (replayOnHover) run();
+      onClick={(event) => {
+        run();
+        onClick?.(event);
       }}
       {...props}
     >
@@ -208,42 +195,57 @@ export interface TypewriterProps extends Omit<
   words: string[];
   /** Milliseconds per typed character. */
   speed?: number;
-  /** Milliseconds a finished word stays before deleting. */
-  pause?: number;
 }
+/** Shows one word. Click to delete it and type the next. */
 export function Typewriter({
   words,
-  speed = 70,
-  pause = 1600,
+  speed = 55,
   className,
+  onClick,
   ...props
 }: TypewriterProps) {
   const list = words.length ? words : [""];
   const [word, setWord] = useState(0);
-  const [length, setLength] = useState(() =>
-    prefersReducedMotion() ? list[0].length : 0,
-  );
-  const [deleting, setDeleting] = useState(false);
+  const [length, setLength] = useState(list[0].length);
+  const [phase, setPhase] = useState<"idle" | "deleting" | "typing">("idle");
+  const current = list[word % list.length];
   useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const current = list[word % list.length];
-    let wait = deleting ? speed / 2 : speed;
-    if (!deleting && length === current.length) wait = pause;
-    const timer = setTimeout(() => {
-      if (!deleting && length === current.length) setDeleting(list.length > 1);
-      else if (deleting && length === 0) {
-        setDeleting(false);
-        setWord((w) => (w + 1) % list.length);
-      } else setLength((l) => l + (deleting ? -1 : 1));
-    }, wait);
+    if (phase === "idle") return;
+    const timer = setTimeout(
+      () => {
+        if (phase === "deleting") {
+          if (length > 0) setLength(length - 1);
+          else {
+            setWord((w) => (w + 1) % list.length);
+            setPhase("typing");
+          }
+        } else if (length < current.length) setLength(length + 1);
+        else setPhase("idle");
+      },
+      phase === "deleting" ? speed / 2 : speed,
+    );
     return () => clearTimeout(timer);
-  }, [length, deleting, word, list, speed, pause]);
+  }, [phase, length, current, list.length, speed]);
   return (
-    <span className={cx("ui-typewriter", className)} {...props}>
-      <span className="ui-sr-only">{list.join(", ")}</span>
-      <span aria-hidden="true">
-        {list[word % list.length].slice(0, length)}
+    <span
+      className={cx("ui-typewriter", className)}
+      data-typing={phase !== "idle" || undefined}
+      onClick={(event) => {
+        if (list.length > 1 && phase === "idle") {
+          if (prefersReducedMotion()) {
+            const next = (word + 1) % list.length;
+            setWord(next);
+            setLength(list[next].length);
+          } else setPhase("deleting");
+        }
+        onClick?.(event);
+      }}
+      {...props}
+    >
+      <span className="ui-sr-only" aria-live="polite">
+        {phase === "idle" ? current : ""}
       </span>
+      <span aria-hidden="true">{current.slice(0, length)}</span>
       <span className="ui-typewriter-caret" aria-hidden="true" />
     </span>
   );
@@ -261,43 +263,49 @@ export interface CountUpProps extends Omit<
   prefix?: string;
   suffix?: string;
 }
+/** Shows a number. Click to count it up from zero again. */
 export function CountUp({
   value,
-  duration = 1200,
+  duration = 900,
   decimals = 0,
   prefix = "",
   suffix = "",
   className,
+  onClick,
   ...props
 }: CountUpProps) {
-  const [ref, inView] = useInView<HTMLSpanElement>();
-  const [current, setCurrent] = useState(0);
+  const [current, setCurrent] = useState(value);
+  const frame = useRef(0);
   useEffect(() => {
-    if (!inView) return;
-    if (
-      prefersReducedMotion() ||
-      typeof requestAnimationFrame === "undefined"
-    ) {
-      setCurrent(value);
+    setCurrent(value);
+    return () => cancelAnimationFrame(frame.current);
+  }, [value]);
+  function run() {
+    cancelAnimationFrame(frame.current);
+    if (prefersReducedMotion() || typeof requestAnimationFrame === "undefined")
       return;
-    }
     const start = performance.now();
-    let frame = 0;
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
       setCurrent(value * (1 - Math.pow(1 - t, 3)));
-      if (t < 1) frame = requestAnimationFrame(tick);
+      if (t < 1) frame.current = requestAnimationFrame(tick);
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [inView, value, duration]);
+    frame.current = requestAnimationFrame(tick);
+  }
   const format = (n: number) =>
     `${prefix}${n.toLocaleString(undefined, {
       minimumFractionDigits: decimals,
       maximumFractionDigits: decimals,
     })}${suffix}`;
   return (
-    <span ref={ref} className={cx("ui-count-up", className)} {...props}>
+    <span
+      className={cx("ui-count-up", className)}
+      onClick={(event) => {
+        run();
+        onClick?.(event);
+      }}
+      {...props}
+    >
       <span className="ui-sr-only">{format(value)}</span>
       <span aria-hidden="true">{format(current)}</span>
     </span>

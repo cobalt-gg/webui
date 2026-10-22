@@ -15,7 +15,7 @@ import {
   File as FileIcon,
   CheckCircle2,
 } from "lucide-react";
-import { cx, Button, IconButton } from "./actions";
+import { cx, Button, IconButton, ripple } from "./actions";
 
 export interface FieldBinding {
   id: string;
@@ -153,7 +153,10 @@ export function Accordion({ items, className, ...props }: AccordionProps) {
           className="ui-accordion-item"
         >
           <RAccordion.Header>
-            <RAccordion.Trigger className="ui-accordion-trigger">
+            <RAccordion.Trigger
+              className="ui-accordion-trigger"
+              onPointerDown={ripple}
+            >
               {item.title}
               <ChevronDown size={16} aria-hidden="true" />
             </RAccordion.Trigger>
@@ -212,7 +215,7 @@ export function OptionCard({
   ...props
 }: OptionCardProps) {
   return (
-    <label className={cx("ui-option-card", className)}>
+    <label className={cx("ui-option-card", className)} onPointerDown={ripple}>
       <input {...props} type="radio" />
       <span className="ui-option-mark" aria-hidden="true">
         <CheckCircle2 size={18} />

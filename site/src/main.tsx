@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   Button,
@@ -33,7 +27,7 @@ const INSTALL = "npm install github:cobalt-gg/webui";
 const REPO = "https://github.com/cobalt-gg/webui";
 
 const blurbs: Record<(typeof categories)[number], string> = {
-  Text: "Headlines that move: reveals, decodes, typing and shine.",
+  Text: "Click any of these to play them: waves, decodes, typing and shine.",
   Actions: "Buttons and switches. Labels are short verbs.",
   Inputs: "Native fields first, so keyboards and autofill just work.",
   Navigation: "Ways to move around: tabs, menus, headers and steps.",
@@ -232,15 +226,11 @@ function App() {
         </div>
       </header>
 
-      <div className="scroll-progress" aria-hidden="true" />
       <main id="top">
         <section className="hero container">
-          <div className="hero__glow" aria-hidden="true" />
-          <span className="eyebrow">
-            <ScrambleText text="@cobalt/ui" duration={900} />
-          </span>
+          <span className="eyebrow">@cobalt/ui</span>
           <h1>
-            <SplitText text="Every component," stagger={32} />
+            <SplitText text="Every component," />
             <br />
             <GradientText>
               <Typewriter
@@ -250,14 +240,13 @@ function App() {
                   "accessible.",
                   "dark first.",
                 ]}
-                pause={2200}
               />
             </GradientText>
           </h1>
           <p className="hero__lede">
             The React kit behind Cobalt. {registry.length} components with
             graphite surfaces, one cobalt accent and native controls underneath.
-            Everything below is live, so click around.
+            Everything below is live, so click around. Even the headline.
           </p>
           <div className="hero__actions">
             <a
@@ -372,12 +361,12 @@ function App() {
                       <SplitText text={cat} stagger={45} />
                     </h2>
                     <p>
-                      <ShinyText speed={4}>{blurbs[cat]}</ShinyText>
+                      <ShinyText>{blurbs[cat]}</ShinyText>
                     </p>
                   </div>
                   <div className="grid">
-                    {items.map((c, i) => (
-                      <ComponentCard key={c.slug} component={c} index={i} />
+                    {items.map((c) => (
+                      <ComponentCard key={c.slug} component={c} />
                     ))}
                   </div>
                 </section>
@@ -435,62 +424,20 @@ function App() {
   );
 }
 
-/** Fades a card up the first time it scrolls into view. */
-function useReveal<T extends HTMLElement>() {
-  const ref = useRef<T>(null);
-  const [revealed, setRevealed] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
-      setRevealed(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setRevealed(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "0px 0px -8% 0px" },
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-  return [ref, revealed] as const;
-}
-
-function ComponentCard({
-  component: c,
-  index,
-}: {
-  component: ComponentEntry;
-  index: number;
-}) {
+function ComponentCard({ component: c }: { component: ComponentEntry }) {
   const [open, setOpen] = useState(false);
-  const [ref, revealed] = useReveal<HTMLElement>();
   const panel = `${c.slug}-details`;
   return (
     <article
-      ref={ref}
       id={c.slug}
       className="component"
       data-wide={wide.has(c.name) || undefined}
       data-open={open || undefined}
-      data-revealed={revealed || undefined}
-      style={{ "--i": index % 2 } as CSSProperties}
       aria-labelledby={`${c.slug}-title`}
-      onPointerMove={(e) => {
-        const box = e.currentTarget.getBoundingClientRect();
-        e.currentTarget.style.setProperty("--x", `${e.clientX - box.left}px`);
-        e.currentTarget.style.setProperty("--y", `${e.clientY - box.top}px`);
-      }}
     >
       <header className="component__head">
         <h3 id={`${c.slug}-title`}>
-          <a href={`#${c.slug}`}>
-            <ScrambleText text={title(c.name)} duration={450} />
-          </a>
+          <a href={`#${c.slug}`}>{title(c.name)}</a>
         </h3>
         <button
           type="button"

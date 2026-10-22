@@ -8,6 +8,14 @@ export interface PreviewOptions {
   variant: UI.ButtonProps["variant"];
   disabled: boolean;
 }
+const textHints: Record<string, string> = {
+  SplitText: "Click the sentence",
+  ScrambleText: "Click to decode",
+  Typewriter: "Click for the next store",
+  GradientText: "Click to sweep",
+  ShinyText: "Click to shine",
+  CountUp: "Click a number",
+};
 export function Preview({
   name,
   size = "md",
@@ -643,6 +651,9 @@ export function Preview({
   return (
     <div className="demo-content">
       {preview}
+      {name in textHints && (
+        <span className="demo-hint">{textHints[name]}</span>
+      )}
       {action && (
         <p className="demo-result" role="status">
           {action}

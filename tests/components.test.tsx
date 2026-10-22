@@ -12,6 +12,9 @@ import {
   Switch,
   SegmentedControl,
   Pagination,
+  SplitText,
+  Typewriter,
+  CountUp,
 } from "../src";
 import { registry } from "../src/registry";
 import { Preview } from "../site/src/previews";
@@ -161,4 +164,37 @@ it("loading buttons expose busy state and prevent duplicate activation", async (
   expect((button as HTMLButtonElement).disabled).toBe(true);
   await userEvent.click(button);
   expect(click).not.toHaveBeenCalled();
+});
+it("starts a ripple from the click point and skips disabled controls", () => {
+  render(
+    <>
+      <Button>Ripple</Button>
+      <Button disabled>Off</Button>
+    </>,
+  );
+  const on = screen.getByText("Ripple");
+  fireEvent.pointerDown(on, { button: 0, clientX: 10, clientY: 5 });
+  expect(on.hasAttribute("data-ripple")).toBe(true);
+  expect(on.style.getPropertyValue("--ui-ripple-x")).toMatch(/px$/);
+  const off = screen.getByText("Off");
+  fireEvent.pointerDown(off, { button: 0 });
+  expect(off.hasAttribute("data-ripple")).toBe(false);
+});
+it("text effects stay still until clicked and keep their text readable", async () => {
+  const { container } = render(
+    <>
+      <SplitText text="Hello there" />
+      <Typewriter words={["Steam", "Epic"]} />
+      <CountUp value={42} />
+    </>,
+  );
+  const split = container.querySelector(".ui-split-text")!;
+  expect(split.hasAttribute("data-playing")).toBe(false);
+  fireEvent.click(split);
+  expect(split.hasAttribute("data-playing")).toBe(true);
+  expect(screen.getAllByText("Hello there")[0].className).toBe("ui-sr-only");
+  expect(container.querySelector(".ui-typewriter")!.textContent).toContain(
+    "Steam",
+  );
+  expect(container.querySelector(".ui-count-up")!.textContent).toContain("42");
 });

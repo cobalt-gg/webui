@@ -131,3 +131,49 @@ test("tokens, focus, reduced motion and small viewport", async ({ page }) => {
   await page.keyboard.press("Tab");
   await expect(page.getByText("Skip to components")).toBeFocused();
 });
+
+test("clicks ripple and play text effects; nothing loops on its own", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const button = page
+    .locator("#button .stage")
+    .getByRole("button", { name: "Continue" });
+  await button.click();
+  await expect(button).toHaveAttribute("data-ripple", "");
+  expect(
+    await button.evaluate(
+      (el) => getComputedStyle(el, "::after").animationName,
+    ),
+  ).toBe("ui-ripple");
+
+  const wave = page.locator("#split-text .ui-split-text");
+  await expect(wave).not.toHaveAttribute("data-playing", "");
+  await wave.click();
+  await expect(wave).toHaveAttribute("data-playing", "");
+  await expect(wave).not.toHaveAttribute("data-playing", "", {
+    timeout: 3000,
+  });
+
+  const typed = page
+    .locator("#typewriter .ui-typewriter [aria-hidden]")
+    .first();
+  await expect(typed).toHaveText("Steam");
+  await page.locator("#typewriter .ui-typewriter").click();
+  await expect(typed).toHaveText("Epic", { timeout: 3000 });
+
+  // No infinite animations anywhere except the functional spinner and skeleton.
+  const looping = await page.evaluate(() =>
+    document
+      .getAnimations()
+      .filter(
+        (a) =>
+          a.effect?.getTiming().iterations === Infinity &&
+          !(a.effect as KeyframeEffect).target?.matches(
+            ".ui-spinner, .ui-skeleton",
+          ),
+      )
+      .map((a) => (a as CSSAnimation).animationName),
+  );
+  expect(looping).toEqual([]);
+});

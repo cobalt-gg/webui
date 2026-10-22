@@ -7,7 +7,7 @@ import {
   ContextMenu as RContext,
   Tooltip as RTooltip,
 } from "radix-ui";
-import { Button, cx } from "./actions";
+import { Button, cx, ripple } from "./actions";
 import { usePortalContainer } from "./portal";
 export interface DialogProps extends React.ComponentPropsWithoutRef<
   typeof RDialog.Root
@@ -176,6 +176,7 @@ export function DropdownMenu({
             <RMenu.Item
               key={n}
               className="ui-menu-item"
+              onPointerDown={ripple}
               disabled={i.disabled}
               data-destructive={i.destructive}
               onSelect={i.onSelect}
@@ -218,6 +219,7 @@ export function ContextMenu({
             <RContext.Item
               key={n}
               className="ui-menu-item"
+              onPointerDown={ripple}
               disabled={i.disabled}
               data-destructive={i.destructive}
               onSelect={i.onSelect}

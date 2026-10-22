@@ -7,7 +7,7 @@ import {
 } from "react";
 import { Dialog as RDialog } from "radix-ui";
 import { ChevronLeft, ChevronRight, X, Keyboard } from "lucide-react";
-import { cx, IconButton, Button } from "./actions";
+import { cx, IconButton, Button, ripple } from "./actions";
 import { usePortalContainer } from "./portal";
 export interface SiteLink {
   label: string;
@@ -109,6 +109,7 @@ export function MediaGallery({
             type="button"
             key={image.src + i}
             className="ui-media-tile"
+            onPointerDown={ripple}
             ref={(node) => {
               triggers.current[i] = node;
             }}

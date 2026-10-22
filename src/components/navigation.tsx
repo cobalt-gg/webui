@@ -1,6 +1,6 @@
 import type { AnchorHTMLAttributes, HTMLAttributes, ReactNode } from "react";
 import { Tabs as RTabs } from "radix-ui";
-import { Button, cx, type ButtonProps } from "./actions";
+import { Button, cx, ripple, type ButtonProps } from "./actions";
 export interface TabsProps extends React.ComponentPropsWithoutRef<
   typeof RTabs.Root
 > {
@@ -19,6 +19,7 @@ export function Tabs({ items, label, className, ...props }: TabsProps) {
         {items.map((i) => (
           <RTabs.Trigger
             className="ui-tab"
+            onPointerDown={ripple}
             key={i.value}
             value={i.value}
             disabled={i.disabled}
@@ -56,12 +57,17 @@ export interface NavigationItemProps extends AnchorHTMLAttributes<HTMLAnchorElem
 export function NavigationItem({
   active,
   className,
+  onPointerDown,
   ...props
 }: NavigationItemProps) {
   return (
     <a
       aria-current={active ? "page" : undefined}
       className={cx("ui-nav-item", className)}
+      onPointerDown={(e) => {
+        ripple(e);
+        onPointerDown?.(e);
+      }}
       {...props}
     />
   );

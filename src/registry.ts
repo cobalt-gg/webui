@@ -14,60 +14,53 @@ export const registry = [
     slug: "split-text",
     category: "Text",
     description:
-      "Reveals text letter by letter or word by word as it scrolls into view.",
-    tags: ["text", "animation", "reveal", "stagger", "headline"],
+      "Splits text into letters or words. Click it to send a wave through them.",
+    tags: ["text", "animation", "wave", "stagger", "headline", "click"],
     props: [
       { name: "text", description: "string" },
       { name: "by", description: "char | word" },
-      { name: "stagger / delay", description: "milliseconds" },
-      {
-        name: "whenVisible",
-        description: "boolean; wait until on screen (default true)",
-      },
+      { name: "stagger", description: "milliseconds between pieces" },
     ],
     example: '<SplitText text="All your games in one place." />',
     accessibility:
-      "The full string is exposed once to assistive technology; the animated pieces are hidden from it.",
+      "The full string is exposed once to assistive technology; the pieces are hidden from it. Reduced motion skips the wave.",
   },
   {
     name: "ScrambleText",
     slug: "scramble-text",
     category: "Text",
     description:
-      "Decodes from random glyphs into the real text, and again on hover.",
-    tags: ["text", "animation", "decode", "glitch", "hacker"],
+      "Click to scramble the text into random glyphs and decode it back.",
+    tags: ["text", "animation", "decode", "glitch", "click"],
     props: [
       { name: "text", description: "string" },
-      { name: "duration", description: "milliseconds for the whole decode" },
-      { name: "replayOnHover", description: "boolean (default true)" },
+      { name: "duration", description: "milliseconds for the decode" },
     ],
     example: '<ScrambleText text="Ready to play" />',
     accessibility:
-      "Screen readers get the final text only. With reduced motion the text appears without scrambling.",
+      "Screen readers get the real text only. With reduced motion, clicking does nothing.",
   },
   {
     name: "Typewriter",
     slug: "typewriter",
     category: "Text",
-    description:
-      "Types, pauses and deletes a rotating list of words with a blinking caret.",
-    tags: ["text", "animation", "typing", "rotate", "caret"],
+    description: "Shows one word. Click to delete it and type the next.",
+    tags: ["text", "animation", "typing", "rotate", "caret", "click"],
     props: [
       { name: "words", description: "string[]" },
       { name: "speed", description: "milliseconds per character" },
-      { name: "pause", description: "milliseconds a finished word stays" },
     ],
     example: '<Typewriter words={["Steam", "Epic", "GOG"]} />',
     accessibility:
-      "All words are announced once as a list; the typing itself is hidden. Reduced motion shows the first word.",
+      "The finished word is announced politely after each change. Reduced motion swaps words instantly.",
   },
   {
     name: "GradientText",
     slug: "gradient-text",
     category: "Text",
-    description: "Fills text with a slowly panning cobalt gradient.",
-    tags: ["text", "gradient", "headline", "color"],
-    props: [{ name: "animate", description: "boolean (default true)" }],
+    description: "Cobalt gradient text. Click to sweep the gradient across it.",
+    tags: ["text", "gradient", "headline", "color", "click"],
+    props: [{ name: "native span props", description: "children, onClick…" }],
     example: "<GradientText>One app instead of six</GradientText>",
     accessibility:
       "Plain text with a background clip, so it reads and selects normally. Check contrast on light themes.",
@@ -76,18 +69,18 @@ export const registry = [
     name: "ShinyText",
     slug: "shiny-text",
     category: "Text",
-    description: "Sweeps a soft highlight across muted text.",
-    tags: ["text", "shimmer", "shine", "loading"],
-    props: [{ name: "speed", description: "seconds per sweep (default 3)" }],
+    description: "Muted text. Click to run a soft highlight across it.",
+    tags: ["text", "shimmer", "shine", "click"],
+    props: [{ name: "native span props", description: "children, onClick…" }],
     example: "<ShinyText>Now in closed preview</ShinyText>",
-    accessibility: "Plain text. The sweep stops with reduced motion.",
+    accessibility: "Plain text. Reduced motion skips the highlight.",
   },
   {
     name: "CountUp",
     slug: "count-up",
     category: "Text",
-    description: "Counts a number up from zero when it scrolls into view.",
-    tags: ["text", "number", "counter", "stat", "animation"],
+    description: "Shows a number. Click to count it up from zero again.",
+    tags: ["text", "number", "counter", "stat", "animation", "click"],
     props: [
       { name: "value", description: "number" },
       { name: "duration", description: "milliseconds" },
@@ -95,7 +88,7 @@ export const registry = [
     ],
     example: '<CountUp value={128} suffix=" games" />',
     accessibility:
-      "The final value is exposed to assistive technology straight away; only the visual digits count.",
+      "The final value is exposed to assistive technology at all times; only the visual digits count.",
   },
   {
     name: "Button",

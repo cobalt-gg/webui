@@ -9,6 +9,32 @@ export type Size = "sm" | "md" | "lg";
 export type Tone = "neutral" | "success" | "warning" | "danger";
 export const cx = (...values: (string | undefined | false)[]) =>
   values.filter(Boolean).join(" ");
+function isDisabled(el: HTMLElement) {
+  const own = ":disabled, [data-disabled], [aria-disabled='true']";
+  try {
+    return el.matches(`${own}, :has(> input:disabled)`);
+  } catch {
+    return el.matches(own);
+  }
+}
+/**
+ * Starts a click ripple from the pointer position. Pair it with an element
+ * that has the ui-ripple styles (any interactive ui- control).
+ */
+export function ripple(event: React.PointerEvent<HTMLElement>) {
+  const el = event.currentTarget;
+  if (event.button > 0 || isDisabled(el)) return;
+  const box = el.getBoundingClientRect();
+  el.style.setProperty("--ui-ripple-x", `${event.clientX - box.left}px`);
+  el.style.setProperty("--ui-ripple-y", `${event.clientY - box.top}px`);
+  el.style.setProperty(
+    "--ui-ripple-size",
+    `${Math.hypot(box.width, box.height) * 2}px`,
+  );
+  el.removeAttribute("data-ripple");
+  void el.offsetWidth; // restart the animation on repeated clicks
+  el.setAttribute("data-ripple", "");
+}
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "destructive";
   size?: Size;
@@ -38,6 +64,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         data-variant={variant}
         data-size={size}
         {...props}
+        onPointerDown={(e) => {
+          ripple(e);
+          props.onPointerDown?.(e);
+        }}
         disabled={disabled || loading}
         aria-busy={loading || undefined}
       >
@@ -77,9 +107,19 @@ export function ButtonGroup({
 }
 export function Toggle({
   className,
+  onPointerDown,
   ...props
 }: React.ComponentPropsWithoutRef<typeof RToggle.Root>) {
-  return <RToggle.Root className={cx("ui-toggle", className)} {...props} />;
+  return (
+    <RToggle.Root
+      className={cx("ui-toggle", className)}
+      onPointerDown={(e) => {
+        ripple(e);
+        onPointerDown?.(e);
+      }}
+      {...props}
+    />
+  );
 }
 export interface SwitchProps extends React.ComponentPropsWithoutRef<
   typeof RSwitch.Root
@@ -120,6 +160,7 @@ export function SegmentedControl({
       {options.map((o) => (
         <ToggleGroup.Item
           className="ui-segment"
+          onPointerDown={ripple}
           key={o.value}
           value={o.value}
           disabled={o.disabled}
