@@ -14,9 +14,6 @@ export function Preview({
   variant = "primary",
   disabled = false,
 }: { name: ComponentName } & Partial<PreviewOptions>) {
-  const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(
-    null,
-  );
   const [page, setPage] = useState(1);
   const [toast, setToast] = useState(false);
   const [action, setAction] = useState("");
@@ -591,16 +588,14 @@ export function Preview({
     }
   }
   return (
-    <UI.PortalContainerProvider value={portalContainer}>
-      <div className="demo-content" ref={setPortalContainer}>
-        {preview}
-        {action && (
-          <p className="demo-result" role="status">
-            {action}
-          </p>
-        )}
-      </div>
-    </UI.PortalContainerProvider>
+    <div className="demo-content">
+      {preview}
+      {action && (
+        <p className="demo-result" role="status">
+          {action}
+        </p>
+      )}
+    </div>
   );
 }
 export function Variants({ name }: { name: ComponentName }) {

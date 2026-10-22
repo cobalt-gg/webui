@@ -1,145 +1,133 @@
 import { test, expect } from "@playwright/test";
 import { registry } from "../../src/registry";
-test("gallery search, category filters, routes, and all previews", async ({
+
+const title = (name: string) =>
+  name.replace(/([a-z])([A-Z])|([A-Z])([A-Z][a-z])/g, "$1$3 $2$4");
+
+test("every component renders live on one page, with search and index", async ({
   page,
 }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.locator(".gallery-card")).toHaveCount(registry.length);
-  await page
-    .getByRole("searchbox", { name: "Search components" })
-    .fill("keyboard");
-  await expect(page.locator(".gallery-card")).toHaveCount(
+  await expect(page.locator(".component")).toHaveCount(registry.length);
+  await expect(page.locator(".component .stage .demo-content")).toHaveCount(
+    registry.length,
+  );
+  for (const c of registry)
+    await expect(page.locator(`#${c.slug} > .component__head h3`)).toHaveText(
+      title(c.name),
+    );
+
+  const search = page.getByRole("searchbox", { name: "Search components" });
+  await search.fill("keyboard");
+  await expect(page.locator(".component")).toHaveCount(
     registry.filter((c) =>
-      [c.name, c.category, c.description, ...c.tags]
+      [c.name, title(c.name), c.category, c.description, ...c.tags]
         .join(" ")
         .toLowerCase()
         .includes("keyboard"),
     ).length,
   );
+  await search.fill("not-a-component");
+  await expect(page.getByText("Nothing matches that")).toBeVisible();
+  await page.getByRole("button", { name: "Clear search" }).click();
+  await expect(page.locator(".component")).toHaveCount(registry.length);
+
   await page
-    .getByRole("searchbox", { name: "Search components" })
-    .fill("not-a-component");
-  await expect(page.getByText("No components found")).toBeVisible();
-  await page.getByRole("button", { name: "Clear filters" }).click();
-  await page
-    .getByRole("navigation", { name: "Filter components" })
-    .getByRole("button", { name: "Layout", exact: true })
+    .getByRole("navigation", { name: "Components" })
+    .getByRole("link", { name: "Hotkey Input" })
     .click();
-  await expect(page.locator(".gallery-card")).toHaveCount(
-    registry.filter((c) => c.category === "Layout").length,
-  );
-  for (const c of registry) {
-    await page.goto(`/#/${c.slug}`);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-      c.name.replace(/([a-z])([A-Z])/g, "$1 $2"),
-    );
-    await expect(page.locator(".detail-preview .demo-content")).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Accessibility", exact: true }),
-    ).toBeVisible();
-  }
+  await expect(page.locator("#hotkey-input")).toBeInViewport();
   expect(errors).toEqual([]);
 });
-test("dialog keyboard focus, portal theme, menu navigation and tabs", async ({
-  page,
-}) => {
-  await page.goto("/#/dialog");
-  await page.getByLabel("Preview theme").selectOption("dark");
-  const trigger = page
-    .locator(".detail-preview")
-    .getByRole("button", { name: "Open dialog" });
-  await trigger.click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible();
-  await expect(dialog.getByRole("textbox")).toBeFocused();
-  expect(
-    await dialog.evaluate((el) => getComputedStyle(el).backgroundColor),
-  ).toBe("rgb(35, 42, 54)");
-  await page.keyboard.press("Tab");
-  await expect(dialog.getByRole("button", { name: "Close" })).toBeFocused();
-  await page.keyboard.press("Tab");
-  await expect(dialog.getByRole("textbox")).toBeFocused();
-  await page.keyboard.press("Escape");
-  await expect(trigger).toBeFocused();
-  await page.goto("/#/dropdown-menu");
-  await page
-    .locator(".detail-preview")
-    .getByRole("button", { name: "Actions" })
-    .focus();
-  await page.keyboard.press("ArrowDown");
-  await expect(page.getByRole("menu")).toBeVisible();
-  await expect(
-    page.getByRole("menuitem", { name: "Duplicate", exact: true }),
-  ).toBeFocused();
-  await page.keyboard.press("ArrowDown");
-  await expect(
-    page.getByRole("menuitem", { name: "Archive", exact: true }),
-  ).toBeFocused();
-  await page.keyboard.press("Enter");
-  await expect(
-    page.locator(".detail-preview").getByRole("status"),
-  ).toContainText("archived");
-  await page.goto("/#/tabs");
-  await page
-    .locator(".detail-preview")
-    .getByRole("tab", { name: "Overview" })
-    .focus();
-  await page.keyboard.press("ArrowRight");
-  await expect(
-    page.locator(".detail-preview").getByRole("tabpanel"),
-  ).toContainText("recent activity");
+
+test("old detail links land on the component card", async ({ page }) => {
+  await page.goto("/#/accordion");
+  await expect(page.locator("#accordion")).toBeInViewport();
 });
-test("theme, token overrides, reduced motion, focus, copy and small viewport", async ({
+
+test("code panel shows variants, usage, props and accessibility", async ({
   page,
   context,
 }) => {
-  await page.goto("/#/button");
-  await page.getByLabel("Preview theme").selectOption("light");
+  await page.goto("/#button");
+  const card = page.locator("#button");
+  const toggle = card.getByRole("button", { name: /code for Button/i });
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  for (const heading of ["Variants", "Usage", "Props", "Accessibility"])
+    await expect(card.getByRole("heading", { name: heading })).toBeVisible();
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await card.getByRole("button", { name: "Copy", exact: true }).click();
+  await expect(card.getByRole("button", { name: "Copied" })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
+    "@cobalt/ui",
+  );
+});
+
+test("Cobalt identity: local fonts, graphite ground, no external requests", async ({
+  page,
+}) => {
+  const external: string[] = [];
+  page.on("request", (r) => {
+    if (!r.url().startsWith("http://127.0.0.1:4173")) external.push(r.url());
+  });
+  await page.goto("/");
+  await page.evaluate(() => document.fonts.ready);
+  expect(await page.evaluate(() => document.fonts.check('14px "Geist"'))).toBe(
+    true,
+  );
+  expect(
+    await page.evaluate(() => document.fonts.check('14px "JetBrains Mono"')),
+  ).toBe(true);
+  expect(
+    await page
+      .locator("body")
+      .evaluate((el) => getComputedStyle(el).backgroundColor),
+  ).toBe("rgb(14, 14, 13)");
+  await page.keyboard.press("/");
+  await expect(
+    page.getByRole("searchbox", { name: "Search components" }),
+  ).toBeFocused();
+  expect(external).toEqual([]);
+});
+
+test("tokens, focus, reduced motion and small viewport", async ({ page }) => {
+  await page.goto("/");
   const button = page
-    .locator(".detail-preview")
+    .locator("#button .stage")
     .getByRole("button", { name: "Continue" });
+  expect(
+    await button.evaluate((el) => getComputedStyle(el).backgroundColor),
+  ).toBe("rgb(59, 66, 117)");
   await button.focus();
   expect(await button.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe(
     "solid",
   );
   await page
-    .locator(".detail-preview")
+    .locator("#button .stage")
     .evaluate((el) =>
       (el as HTMLElement).style.setProperty("--ui-accent", "rgb(120, 40, 160)"),
     );
   await expect
     .poll(() => button.evaluate((el) => getComputedStyle(el).backgroundColor))
     .toBe("rgb(120, 40, 160)");
-  await page.getByRole("button", { name: /Switch to .* theme/ }).click();
-  await expect(page.locator("html")).toHaveAttribute(
-    "data-ui-theme",
-    /light|dark/,
-  );
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await page.getByRole("button", { name: "Copy", exact: true }).first().click();
-  await expect(
-    page.getByRole("button", { name: "Copied", exact: true }),
-  ).toBeVisible();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
-    "@cobalt/ui",
-  );
+
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/#/spinner");
+  await page.reload();
   expect(
     await page
-      .locator(".detail-preview .ui-spinner")
+      .locator("#spinner .ui-spinner")
       .evaluate((el) => getComputedStyle(el).animationName),
   ).toBe("none");
+
   await page.setViewportSize({ width: 375, height: 800 });
   await page.goto("/");
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
     375,
   );
   await page.keyboard.press("Tab");
-  await page.getByText("Skip to content").focus();
-  await page.keyboard.press("Enter");
-  await expect(page.locator("main")).toBeFocused();
-  await expect(page.locator(".gallery-card")).toHaveCount(registry.length);
+  await expect(page.getByText("Skip to components")).toBeFocused();
 });

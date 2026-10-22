@@ -1,84 +1,139 @@
+/* Cobalt tokens — dark-first. Neutrals carry a faint warm cast so they read as
+   graphite rather than blue-slate; cobalt is the only saturated hue in chrome.
+   Set data-ui-theme="light" on any element for the light variant. */
 :root,
-[data-ui-theme="light"] {
-  color-scheme: light;
-  --ui-bg: #ffffff;
-  --ui-surface: #f5f6f8;
-  --ui-surface-elevated: #ffffff;
-  --ui-border: #dce0e6;
-  --ui-text: #19212f;
-  --ui-text-secondary: #4c5769;
-  --ui-text-muted: #647084;
-  --ui-accent: #315edb;
-  --ui-accent-hover: #234bb9;
+[data-ui-theme="dark"] {
+  color-scheme: dark;
+
+  /* surfaces */
+  --ui-bg: #0e0e0d;
+  --ui-surface: #141413;
+  --ui-surface-elevated: #1a1a18;
+  --ui-surface-sunken: #080807;
+  --ui-surface-hover: rgb(255 255 255 / 0.04);
+  --ui-surface-active: rgb(255 255 255 / 0.07);
+  --ui-control: #21211f;
+  --ui-control-hover: #292927;
+  --ui-scrim: rgb(8 8 7 / 0.72);
+
+  /* borders */
+  --ui-border-subtle: rgb(255 255 255 / 0.06);
+  --ui-border: rgb(255 255 255 / 0.1);
+  --ui-border-strong: rgb(255 255 255 / 0.16);
+
+  /* text */
+  --ui-text: #f5f5f2;
+  --ui-text-secondary: #d0d0ca;
+  --ui-text-muted: #8f8f88;
+  --ui-text-faint: #6b6b65;
+
+  /* accent */
+  --ui-accent: #3b4275;
+  --ui-accent-hover: #5a63a0;
   --ui-on-accent: #ffffff;
-  --ui-danger: #bc303b;
-  --ui-warning: #8c6008;
-  --ui-success: #197548;
+  --ui-accent-text: #8b93c9;
+  --ui-accent-soft: rgb(90 99 160 / 0.2);
+  --ui-accent-border: rgb(139 147 201 / 0.34);
+  --ui-focus: #8b93c9;
+
+  /* status */
+  --ui-danger: #f2544b;
+  --ui-danger-text: #f57a72;
+  --ui-warning: #f7c463;
+  --ui-success: #5cdba1;
+
+  /* spacing — 4px grid */
   --ui-space-1: 4px;
   --ui-space-2: 8px;
   --ui-space-3: 12px;
   --ui-space-4: 16px;
   --ui-space-5: 24px;
   --ui-space-6: 32px;
-  --ui-radius-sm: 5px;
-  --ui-radius-md: 8px;
-  --ui-radius-lg: 12px;
+
+  /* radius — everything is rounded */
+  --ui-radius-xs: 4px;
+  --ui-radius-sm: 6px;
+  --ui-radius-md: 10px;
+  --ui-radius-lg: 14px;
+  --ui-radius-xl: 20px;
   --ui-radius-full: 999px;
-  --ui-shadow-sm: 0 1px 3px #13233b0d;
-  --ui-shadow-lg: 0 12px 48px #13233b26;
+
+  /* elevation: a light inner hairline plus a soft drop */
+  --ui-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --ui-shadow-md:
+    0 4px 12px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --ui-shadow-lg:
+    0 12px 32px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.05);
+  --ui-shadow-xl:
+    0 24px 64px rgb(0 0 0 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --ui-shadow-focus: 0 0 0 3px rgb(90 99 160 / 0.45);
+
+  /* type */
   --ui-font-sans:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  --ui-font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+    "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ui-font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --ui-font-2xs: 11px;
   --ui-font-xs: 12px;
-  --ui-font-sm: 14px;
-  --ui-font-md: 16px;
+  --ui-font-sm: 13px;
+  --ui-font-md: 15px;
   --ui-font-lg: 20px;
-  --ui-font-xl: 28px;
+  --ui-font-xl: 25px;
+  --ui-font-2xl: 32px;
+  --ui-font-3xl: 40px;
   --ui-weight-normal: 400;
   --ui-weight-medium: 500;
   --ui-weight-semibold: 600;
-  --ui-line-height: 1.5;
-  --ui-motion-fast: 100ms;
-  --ui-motion-normal: 160ms;
-  --ui-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ui-line-height: 1.45;
+  --ui-tracking-tight: -0.02em;
+  --ui-tracking-snug: -0.01em;
+
+  /* motion — short, flat, no bounce */
+  --ui-motion-instant: 80ms;
+  --ui-motion-fast: 140ms;
+  --ui-motion-normal: 200ms;
+  --ui-motion-slow: 320ms;
+  --ui-ease: cubic-bezier(0.2, 0, 0.2, 1);
+  --ui-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* layering and layout */
   --ui-z-overlay: 100;
   --ui-z-popover: 110;
   --ui-z-toast: 120;
   --ui-container-width: 1120px;
 }
-[data-ui-theme="dark"] {
-  color-scheme: dark;
-  --ui-bg: #14171e;
-  --ui-surface: #1c212b;
-  --ui-surface-elevated: #232a36;
-  --ui-border: #343d4c;
-  --ui-text: #edf0f5;
-  --ui-text-secondary: #bbc4d3;
-  --ui-text-muted: #9ca9bc;
-  --ui-accent: #9ab5ff;
-  --ui-accent-hover: #b4c8ff;
-  --ui-on-accent: #101e42;
-  --ui-danger: #ff8c95;
-  --ui-warning: #efc36c;
-  --ui-success: #79d4a2;
-  --ui-shadow-lg: 0 12px 48px #0006;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-ui-theme="light"]):not([data-ui-theme="dark"]) {
-    color-scheme: dark;
-    --ui-bg: #14171e;
-    --ui-surface: #1c212b;
-    --ui-surface-elevated: #232a36;
-    --ui-border: #343d4c;
-    --ui-text: #edf0f5;
-    --ui-text-secondary: #bbc4d3;
-    --ui-text-muted: #9ca9bc;
-    --ui-accent: #9ab5ff;
-    --ui-accent-hover: #b4c8ff;
-    --ui-on-accent: #101e42;
-    --ui-danger: #ff8c95;
-    --ui-warning: #efc36c;
-    --ui-success: #79d4a2;
-  }
+
+[data-ui-theme="light"] {
+  color-scheme: light;
+  --ui-bg: #f5f5f2;
+  --ui-surface: #ffffff;
+  --ui-surface-elevated: #ffffff;
+  --ui-surface-sunken: #ebebe7;
+  --ui-surface-hover: rgb(20 20 19 / 0.04);
+  --ui-surface-active: rgb(20 20 19 / 0.07);
+  --ui-control: #ffffff;
+  --ui-control-hover: #f0f0ec;
+  --ui-scrim: rgb(20 20 19 / 0.4);
+  --ui-border-subtle: rgb(20 20 19 / 0.07);
+  --ui-border: rgb(20 20 19 / 0.12);
+  --ui-border-strong: rgb(20 20 19 / 0.2);
+  --ui-text: #141413;
+  --ui-text-secondary: #33332f;
+  --ui-text-muted: #6b6b65;
+  --ui-text-faint: #8f8f88;
+  --ui-accent: #3b4275;
+  --ui-accent-hover: #323868;
+  --ui-on-accent: #ffffff;
+  --ui-accent-text: #3b4275;
+  --ui-accent-soft: rgb(59 66 117 / 0.1);
+  --ui-accent-border: rgb(59 66 117 / 0.3);
+  --ui-focus: #5a63a0;
+  --ui-danger: #c8352c;
+  --ui-danger-text: #b42f27;
+  --ui-warning: #8a5c00;
+  --ui-success: #17734a;
+  --ui-shadow-sm: 0 1px 2px rgb(20 20 19 / 0.08);
+  --ui-shadow-md: 0 4px 12px rgb(20 20 19 / 0.08);
+  --ui-shadow-lg: 0 12px 32px rgb(20 20 19 / 0.12);
+  --ui-shadow-xl: 0 24px 64px rgb(20 20 19 / 0.16);
+  --ui-shadow-focus: 0 0 0 3px rgb(90 99 160 / 0.3);
 }

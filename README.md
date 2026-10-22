@@ -1,6 +1,6 @@
 # Cobalt UI
 
-A reusable React + TypeScript library (`@cobalt/ui`) and its static component reference site. The 68 generic components and patterns cover actions, inputs, navigation, overlays, feedback, display, and layout. Components contain no product branding. The gallery consumes the same source and metadata as the package; it has no backend, authentication, editing, publishing, analytics, or runtime API calls.
+A reusable React + TypeScript library (`@cobalt/ui`) and its static component reference site. The 68 components and patterns cover actions, inputs, navigation, overlays, feedback, data, and layout. They share the Cobalt look from cobaltlauncher.com: graphite surfaces, one muted cobalt accent, Geist and JetBrains Mono, and hairline borders. The gallery consumes the same source and metadata as the package; it has no backend, authentication, editing, publishing, analytics, or runtime API calls.
 
 ## Develop
 
@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-`dev` / `dev:site` starts Vite. The site includes search by name, category, description, and tags; live previews; component detail routes; theme, size, variant, and disabled controls where applicable; copyable examples; and API/accessibility notes. All interactions change local example state only.
+`dev` / `dev:site` starts Vite. The site is one page that renders every component live, grouped by category, with a sticky index and search (press `/`). Each card has a **Code** toggle that shows the variants, a copyable usage example, props, and accessibility notes. All interactions change local example state only.
 
 ```sh
 npm run typecheck
@@ -26,11 +26,11 @@ Browser tests run against the production build. To use an existing Chromium bina
 ## Structure and adding components
 
 - `src/components/`: typed primitives organized by category. Native buttons and form fields forward refs and native props. Complex interactions use Radix UI, rather than custom focus management.
-- `src/tokens/index.css`: semantic colors, spacing, radius, typography, shadows, motion, and layering, with light/dark defaults.
+- `src/tokens/index.css`: semantic colors, spacing, radius, typography, shadows, motion, and layering, dark by default, with a light variant.
 - `src/styles/`: opt-in component styles. No global body reset is applied to consuming applications.
 - `src/registry.ts`: shared metadata, props summaries, usage, and accessibility notes. Available separately through `@cobalt/ui/registry` without importing React components.
 - `site/src/previews.tsx`: exhaustive, typed preview mapping and variant examples.
-- `site/src/main.tsx`: registry-driven navigation, gallery, search, and details.
+- `site/src/main.tsx`: the registry-driven single-page reference, index, search, and code panels.
 - `tests/`: component interaction tests and production-site browser tests.
 
 To add a component:
@@ -38,7 +38,7 @@ To add a component:
 1. Add a typed component in `src/components/`, using native HTML semantics and token-based styles in `src/styles/components.css`. Forward relevant native attributes, support className, and use Radix for complicated keyboard/focus behavior.
 2. Export it from `src/index.ts`.
 3. Add metadata, an example, prop notes, and accessibility notes in `src/registry.ts`.
-4. Add its live preview in `site/src/previews.tsx`. The exhaustive switch causes typechecking to catch missing previews; the gallery, search, and detail page pick up metadata automatically.
+4. Add its live preview in `site/src/previews.tsx`. The exhaustive switch causes typechecking to catch missing previews; the page, index, and search pick up metadata automatically. Add the name to `wide` or `fill` in `site/src/main.tsx` if the preview needs more room.
 5. Add meaningful interaction tests for behavior, then run typecheck, tests, builds, and browser checks.
 
 The public entry point remains intentionally small; future component subpath exports can be added to the package export map without reorganizing the implementation.
@@ -102,17 +102,18 @@ Import styles before project overrides:
 
 ```css
 :root {
-  --ui-accent: #4877ff;
-  --ui-accent-hover: #315edb;
+  --ui-accent: #2a4fb4;
+  --ui-accent-hover: #3d63cc;
+  --ui-accent-text: #9db4f5;
   --ui-radius-md: 8px;
 }
 ```
 
-The default follows the OS preference. Set `data-ui-theme="light"` or `data-ui-theme="dark"` on `html` to explicitly select a theme. A nested element with that attribute creates a locally themed region. Override semantic tokens at the appropriate scope, including `--ui-on-accent` when changing accent contrast.
+Cobalt is dark first: the dark theme is the default. Set `data-ui-theme="light"` on `html` for the light variant, or `data-ui-theme="dark"` to force dark inside a light region. A nested element with that attribute creates a locally themed region. Override semantic tokens at the appropriate scope, including `--ui-on-accent` when changing accent contrast.
 
-Available tokens include `--ui-bg`, `--ui-surface`, `--ui-surface-elevated`, `--ui-border`, `--ui-text`, `--ui-text-secondary`, `--ui-text-muted`, `--ui-accent`, `--ui-accent-hover`, `--ui-on-accent`, `--ui-danger`, `--ui-warning`, `--ui-success`, `--ui-space-1` through `--ui-space-6`, `--ui-radius-*`, `--ui-font-*`, `--ui-weight-*`, `--ui-shadow-*`, `--ui-motion-*`, `--ui-ease`, `--ui-z-overlay`, `--ui-z-popover`, `--ui-z-toast`, and `--ui-container-width`.
+Available tokens include `--ui-bg`, `--ui-surface`, `--ui-surface-elevated`, `--ui-surface-sunken`, `--ui-surface-hover`, `--ui-surface-active`, `--ui-control`, `--ui-control-hover`, `--ui-scrim`, `--ui-border-subtle`, `--ui-border`, `--ui-border-strong`, `--ui-text`, `--ui-text-secondary`, `--ui-text-muted`, `--ui-text-faint`, `--ui-accent` (fills), `--ui-accent-hover`, `--ui-on-accent`, `--ui-accent-text`, `--ui-accent-soft`, `--ui-accent-border`, `--ui-focus`, `--ui-danger`, `--ui-danger-text`, `--ui-warning`, `--ui-success`, `--ui-space-1` through `--ui-space-6`, `--ui-radius-*`, `--ui-font-*`, `--ui-weight-*`, `--ui-shadow-*`, `--ui-motion-*`, `--ui-ease`, `--ui-z-overlay`, `--ui-z-popover`, `--ui-z-toast`, and `--ui-container-width`.
 
-Overlays portal to `document.body` by default, inheriting the root theme. For a locally themed embedded region, wrap components with `PortalContainerProvider value={element}` and place the target element within that region. Avoid a target inside an ancestor with clipping, transforms, or restrictive stacking contexts. The gallery uses this to keep overlay preview themes independent of the documentation theme.
+Overlays portal to `document.body` by default, inheriting the root theme. For a locally themed embedded region, wrap components with `PortalContainerProvider value={element}` and place the target element within that region. Avoid a target inside an ancestor with clipping, transforms, or restrictive stacking contexts.
 
 SplitView stacks below 640px. CSS variables cannot drive native media query conditions, so that breakpoint is declared directly in CSS. All animation/transition styles respect `prefers-reduced-motion`; loading indicators retain their text/status semantics with motion disabled. Consuming projects remain responsible for accessible labels, good contrast after token overrides, and meaningful page structure.
 
@@ -154,26 +155,11 @@ The deployment uploads static assets only. Hash routes and the generated `_heade
 
 ## Gallery visual identity
 
-The documentation site has its own Cobalt theme in `site/src/identity.css`, separate from the generic package defaults. Its warm charcoal (`#0e0e0d`, `#141413`), indigo (`#3b4275`, `#5a63a0`, `#8b93c9`), and text colors follow the tokens served by cobaltlauncher.com. Geist and JetBrains Mono are self-hosted in `site/public/fonts` with their SIL Open Font License files. The gallery defaults to dark mode and remembers the visitor's theme choice.
+The reference site and the package use the same tokens, taken from the UI kit served by cobaltlauncher.com: warm graphite (`#0e0e0d`, `#141413`, `#1a1a18`), cobalt (`#3b4275`, `#5a63a0`, `#8b93c9`), 10/14/20px radii, and short, flat motion. Geist and JetBrains Mono are self-hosted in `site/public/fonts` with their SIL Open Font License files; the package names them first in its font stack, so load them in your app to match.
 
-The catalog stays compact: Components and Examples navigation, search, category filters, and live previews. Icons use Lucide React. Motion lives in the reusable components: button presses/loading indicators, switch thumb movement, OTP digit entry and errors, accordion expansion, tab panels, menus, sheets, and toast entrances. All respect `prefers-reduced-motion`. Set `data-ui-motion="reduce"` on a container to disable motion for its descendants as well. Press `/` outside a form field to focus component search.
+Motion lives in the components: button presses and loading indicators, switch thumbs, OTP entry and errors, accordions, tab panels, menus, sheets, and toasts. All respect `prefers-reduced-motion`. Set `data-ui-motion="reduce"` on a container to disable motion for its descendants as well.
 
-## Recreate the app with compositions
-
-Open **Examples** in the gallery. Each composition has working local interactions and copyable **React** and **Styles** source tabs. Appearance also includes its **Schema** JSON. Copy the example, `recipes.css`, and (for appearance) `appearance-schema.json` from `site/src/examples/`, install `lucide-react`, and import `@cobalt/ui/styles.css` once. The six examples are code-split so their implementation and source do not load with the initial catalog.
-
-| App pattern inspected                                          | Reusable components                                                          | Example route            |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------ |
-| Public overview, feature cards, screenshot lightbox, footer    | SiteHeader, PageHeader, FeatureCard, MediaGallery, Accordion, SiteFooter     | `/#/examples/website`    |
-| Signed-out, waitlisted, and approved screens                   | AuthPanel, Stepper, Badge, Alert, Button                                     | `/#/examples/waitlist`   |
-| Appearance schema and 14 settings                              | SettingsRow, SegmentedControl, ColorPicker, Slider, Select, Switch, AppShell | `/#/examples/appearance` |
-| Library filters, favorites, capture hotkeys, store connections | AppShell, NavigationItem, InputGroup, Card, HotkeyInput, SettingsRow         | `/#/examples/library`    |
-| Additional account security composition                        | OTPInput, PasswordInput, CopyField, RecoveryCodes, DeviceSession, Dialog     | `/#/examples/security`   |
-| Additional profile composition                                 | FormField, Input, PasswordInput, FileUpload, SettingsRow                     | `/#/examples/account`    |
-
-The public reference was inspected at app.cobaltlauncher.com: overview, screenshots, features, customization, and waitlist. The appearance JSON comes from its public `preview/preview.json`; all 14 fields are represented. The preview applies view, theme, accent/adaptive accent, color impact/reach, surfaces, scale, motion, contrast, vibrancy, light accent, and texture to shared components. Game auto-launch, recording engines, networking, and authentication are application services, not UI-library responsibilities.
-
-The security/profile examples are additional compositions, rather than claims about private account screens. They use intentionally fake local values (`123456` and `DEMO-1234`) to demonstrate accepted and rejected input. Bind authentication, uploads, and session revocation to your application's APIs when using these components. The documentation site sends no form data and uploads no selected files.
+The security components use intentionally fake local values in the previews (`123456` and `DEMO-1234`). Bind authentication, uploads, and session revocation to your application's APIs when using them. The documentation site sends no form data and uploads no selected files.
 
 ### Verification codes
 

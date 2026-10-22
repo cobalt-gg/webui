@@ -319,6 +319,11 @@ export function PatternPreview({
               title: "Library",
             },
             {
+              src: "/examples/game.webp",
+              alt: "Cobalt game page with artwork and a Play button",
+              title: "Game pages",
+            },
+            {
               src: "/examples/settings.webp",
               alt: "Cobalt appearance settings",
               title: "Settings",
