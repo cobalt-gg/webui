@@ -6,11 +6,12 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
+      "@cobalt/ui/registry": fileURLToPath(new URL("../src/registry.ts", import.meta.url)),
       "@cobalt/ui/styles.css": fileURLToPath(
         new URL("../src/styles/index.css", import.meta.url),
       ),
       "@cobalt/ui": fileURLToPath(new URL("../src/index.ts", import.meta.url)),
     },
   },
-  build: { outDir: "dist", emptyOutDir: true },
+  build: { outDir: "dist", emptyOutDir: true, chunkSizeWarningLimit: 800 },
 });

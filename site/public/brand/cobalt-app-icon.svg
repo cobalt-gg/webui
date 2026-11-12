@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>cobalt</title>
+  <defs>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="1.05" r="0.75">
+      <stop offset="0" stop-color="#5a63a0" stop-opacity="0.55"/>
+      <stop offset="0.55" stop-color="#3b4275" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#3b4275" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="230.4" fill="#141413"/>
+  <rect width="1024" height="1024" rx="230.4" fill="url(#glow)"/>
+  <rect width="1024" height="1024" rx="230.4" fill="url(#sheen)"/>
+  <rect x="2.56" y="2.56" width="1018.88" height="1018.88" rx="230.4" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="5.12"/>
+  <g fill="#ffffff" transform="translate(136.79 259.63) scale(0.78627)">
+    <path d="M 34.4 628.0 L 222.4 628.0 L 461.0 337.0 L 303.0 337.0 A 63.4 63.4 0 0 0 254.0 360.2 Z"/>
+    <path d="M 294.4 628.0 L 446.4 628.0 L 708.8 308.0 L 586.8 308.0 A 63.4 63.4 0 0 0 537.7 331.2 Z"/>
+    <path d="M 518.4 628.0 L 634.4 628.0 L 811.5 412.0 L 725.5 412.0 A 63.4 63.4 0 0 0 676.5 435.2 Z"/>
+    <path d="M 437.0 300.0 L 506.8 214.8 A 29.6 29.6 0 0 1 529.7 204.0 L 593.0 204.0 C 682.0 204.0 648.1 48.2 920.0 40.0 C 918.1 78.0 874.3 217.1 776.0 337.0 L 776.0 226.0 L 644.0 226.0 A 97.2 97.2 0 0 0 568.8 261.6 L 550.0 284.5 A 42.3 42.3 0 0 1 517.3 300.0 Z"/>
+  </g>
+</svg>

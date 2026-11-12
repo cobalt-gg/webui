@@ -1,6 +1,8 @@
-/* Cobalt tokens — dark-first. Neutrals carry a faint warm cast so they read as
-   graphite rather than blue-slate; cobalt is the only saturated hue in chrome.
+/* Cobalt UI tokens.
+   Dark first. Neutrals are warm graphite; cobalt is the only saturated hue in
+   chrome. Status colours appear only where they carry meaning.
    Set data-ui-theme="light" on any element for the light variant. */
+
 :root,
 [data-ui-theme="dark"] {
   color-scheme: dark;
@@ -27,7 +29,7 @@
   --ui-text-muted: #8f8f88;
   --ui-text-faint: #6b6b65;
 
-  /* accent */
+  /* cobalt */
   --ui-accent: #3b4275;
   --ui-accent-hover: #5a63a0;
   --ui-on-accent: #ffffff;
@@ -39,18 +41,23 @@
   /* status */
   --ui-danger: #f2544b;
   --ui-danger-text: #f57a72;
+  --ui-danger-soft: rgb(242 84 75 / 0.14);
   --ui-warning: #f7c463;
+  --ui-warning-soft: rgb(247 196 99 / 0.14);
   --ui-success: #5cdba1;
+  --ui-success-soft: rgb(92 219 161 / 0.14);
 
-  /* spacing — 4px grid */
+  /* spacing (4px grid) */
   --ui-space-1: 4px;
   --ui-space-2: 8px;
   --ui-space-3: 12px;
   --ui-space-4: 16px;
   --ui-space-5: 24px;
   --ui-space-6: 32px;
+  --ui-space-7: 48px;
+  --ui-space-8: 64px;
 
-  /* radius — everything is rounded */
+  /* radius */
   --ui-radius-xs: 4px;
   --ui-radius-sm: 6px;
   --ui-radius-md: 10px;
@@ -58,14 +65,17 @@
   --ui-radius-xl: 20px;
   --ui-radius-full: 999px;
 
-  /* elevation: a light inner hairline plus a soft drop */
+  /* control heights */
+  --ui-control-sm: 28px;
+  --ui-control-md: 36px;
+  --ui-control-lg: 44px;
+
+  /* elevation: soft drop plus a faint inner top highlight */
+  --ui-highlight: inset 0 1px 0 rgb(255 255 255 / 0.05);
   --ui-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-  --ui-shadow-md:
-    0 4px 12px rgb(0 0 0 / 0.45), inset 0 1px 0 rgb(255 255 255 / 0.04);
-  --ui-shadow-lg:
-    0 12px 32px rgb(0 0 0 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.05);
-  --ui-shadow-xl:
-    0 24px 64px rgb(0 0 0 / 0.65), inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --ui-shadow-md: 0 4px 12px rgb(0 0 0 / 0.45), var(--ui-highlight);
+  --ui-shadow-lg: 0 12px 32px rgb(0 0 0 / 0.55), var(--ui-highlight);
+  --ui-shadow-xl: 0 24px 64px rgb(0 0 0 / 0.65), var(--ui-highlight);
   --ui-shadow-focus: 0 0 0 3px rgb(90 99 160 / 0.45);
 
   /* type */
@@ -80,6 +90,7 @@
   --ui-font-xl: 25px;
   --ui-font-2xl: 32px;
   --ui-font-3xl: 40px;
+  --ui-font-4xl: 56px;
   --ui-weight-normal: 400;
   --ui-weight-medium: 500;
   --ui-weight-semibold: 600;
@@ -87,7 +98,7 @@
   --ui-tracking-tight: -0.02em;
   --ui-tracking-snug: -0.01em;
 
-  /* motion — short, flat, no bounce */
+  /* motion: short and flat, no bounce */
   --ui-motion-instant: 80ms;
   --ui-motion-fast: 140ms;
   --ui-motion-normal: 200ms;
@@ -96,6 +107,7 @@
   --ui-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   /* layering and layout */
+  --ui-z-sticky: 50;
   --ui-z-overlay: 100;
   --ui-z-popover: 110;
   --ui-z-toast: 120;
@@ -129,8 +141,12 @@
   --ui-focus: #5a63a0;
   --ui-danger: #c8352c;
   --ui-danger-text: #b42f27;
+  --ui-danger-soft: rgb(200 53 44 / 0.1);
   --ui-warning: #8a5c00;
+  --ui-warning-soft: rgb(138 92 0 / 0.1);
   --ui-success: #17734a;
+  --ui-success-soft: rgb(23 115 74 / 0.1);
+  --ui-highlight: inset 0 1px 0 rgb(255 255 255 / 0.6);
   --ui-shadow-sm: 0 1px 2px rgb(20 20 19 / 0.08);
   --ui-shadow-md: 0 4px 12px rgb(20 20 19 / 0.08);
   --ui-shadow-lg: 0 12px 32px rgb(20 20 19 / 0.12);

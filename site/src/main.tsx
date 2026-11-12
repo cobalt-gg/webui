@@ -1,509 +1,208 @@
-import { useEffect, useMemo, useState } from "react";
+import { StrictMode, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import {
-  Button,
-  CodeBlock,
-  CountUp,
-  EmptyState,
-  GradientText,
-  ScrambleText,
-  ShinyText,
-  SplitText,
-  Typewriter,
-  InputGroup,
-  SearchInput,
-  Table,
-  Toast,
-  ToastProvider,
-  ToastViewport,
-} from "@cobalt/ui";
-import { ArrowUpRight, Check, Code2, Copy, Search } from "lucide-react";
-import { categories, registry, type ComponentEntry } from "../../src/registry";
-import { Preview, Variants } from "./previews";
+import { ChevronDown, Moon, Sun } from "lucide-react";
+import { Badge, CodeBlock, IconButton, Kbd, SearchInput, Toaster, Tooltip } from "@cobalt/ui";
+import { categories, registry, type ComponentDoc } from "@cobalt/ui/registry";
 import "@cobalt/ui/styles.css";
 import "./site.css";
+import { previews, Logo } from "./previews";
 
-const INSTALL = "npm install github:cobalt-gg/webui";
-const REPO = "https://github.com/cobalt-gg/webui";
-
-const blurbs: Record<(typeof categories)[number], string> = {
-  Text: "Click any of these to play them: waves, decodes, typing and shine.",
-  Actions: "Buttons and switches. Labels are short verbs.",
-  Inputs: "Native fields first, so keyboards and autofill just work.",
-  Navigation: "Ways to move around: tabs, menus, headers and steps.",
-  Overlays: "Dialogs, menus and tips that sit above the page.",
-  Feedback: "Tell people what happened and what is happening.",
-  Data: "Cards, lists and tables for showing things.",
-  Layout: "Stacks, shells and panels to hold everything else.",
-};
-
-/** Previews that need the full width of the grid. */
-const wide = new Set<string>([
-  "Tabs",
-  "Table",
-  "AppShell",
-  "PageHeader",
-  "AuthPanel",
-  "SiteHeader",
-  "SiteFooter",
-  "MediaGallery",
-  "SplitView",
-  "Container",
-  "FileUpload",
-  "Accordion",
-  "SettingsRow",
-  "DeviceSession",
-  "RecoveryCodes",
-  "CodeBlock",
-  "OptionCard",
+/** Previews that need the full content width. */
+const WIDE = new Set([
+  "Button", "Table", "AppShell", "SiteHeader", "SiteFooter", "GameHero", "GameCard", "Alert", "Banner", "Panel",
+  "StatCard", "FeatureCard", "Carousel", "MediaGallery", "AchievementCard", "DownloadItem", "TitleBar", "Tabs",
+  "Stepper", "OptionCard", "Accordion", "PageHeader", "SettingsRow", "SplitView", "Container", "Marquee",
 ]);
 
-/** Previews whose content should stretch instead of sitting centered. */
-const fill = new Set<string>([
-  "Input",
-  "Textarea",
-  "SearchInput",
-  "Select",
-  "Slider",
-  "NumberInput",
-  "ProgressBar",
-  "Skeleton",
-  "Divider",
-  "Stack",
-  "Card",
-  "Panel",
-  "ListItem",
-  "FormField",
-  "InputGroup",
-  "PasswordInput",
-  "CopyField",
-  "Alert",
-  "StatCard",
-  "FeatureCard",
-  "ColorPicker",
-  "EmptyState",
-]);
+const total = registry.length;
+const newCount = registry.filter((d) => d.isNew).length;
 
-/** Components whose variant sheet shows more than the main preview. */
-const hasVariants = new Set<string>([
-  "Button",
-  "IconButton",
-  "Input",
-  "SearchInput",
-  "NumberInput",
-  "Select",
-  "Textarea",
-  "Badge",
-  "Alert",
-  "StatusIndicator",
-  "Card",
-  "Toggle",
-  "Switch",
-  "Checkbox",
-  "Radio",
-  "Slider",
-  "SegmentedControl",
-  "ProgressBar",
-  "Tabs",
-  "OTPInput",
-  "FormField",
-  "PasswordInput",
-]);
-
-const title = (name: string) =>
-  name.replace(/([a-z])([A-Z])|([A-Z])([A-Z][a-z])/g, "$1$3 $2$4");
-
-function matches(c: ComponentEntry, query: string) {
-  return [c.name, title(c.name), c.category, c.description, ...c.tags]
-    .join(" ")
-    .toLowerCase()
-    .includes(query.trim().toLowerCase());
-}
-
-function slugFromHash() {
-  return decodeURIComponent(location.hash.replace(/^#\/?/, ""));
-}
-
-function App() {
-  const [query, setQuery] = useState("");
-  const [active, setActive] = useState(slugFromHash());
-  const [toast, setToast] = useState("");
-  const shown = useMemo(
-    () => registry.filter((c) => matches(c, query)),
-    [query],
-  );
-
-  // Old detail links (#/button) and plain anchors (#button) both land on the card.
-  useEffect(() => {
-    const go = () => {
-      const slug = slugFromHash();
-      const el = slug && document.getElementById(slug);
-      if (el) {
-        el.scrollIntoView({ block: "start" });
-        setActive(slug);
-      }
-    };
-    go();
-    window.addEventListener("hashchange", go);
-    return () => window.removeEventListener("hashchange", go);
-  }, []);
-
-  // Highlight the card nearest the top of the viewport in the index.
-  useEffect(() => {
-    const cards = document.querySelectorAll<HTMLElement>(".component");
-    const seen = new Map<string, boolean>();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) seen.set(e.target.id, e.isIntersecting);
-        const first = [...cards].find((c) => seen.get(c.id));
-        if (first) setActive(first.id);
-      },
-      { rootMargin: "-80px 0px -55% 0px" },
-    );
-    cards.forEach((c) => observer.observe(c));
-    return () => observer.disconnect();
-  }, [shown]);
-
-  useEffect(() => {
-    document
-      .querySelector(`.index-link[aria-current]`)
-      ?.scrollIntoView({ block: "nearest" });
-  }, [active]);
-
-  useEffect(() => {
-    const shortcut = (event: KeyboardEvent) => {
-      if (
-        event.key !== "/" ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.altKey ||
-        (event.target as HTMLElement).closest(
-          'input,textarea,select,[contenteditable="true"]',
-        )
-      )
-        return;
-      event.preventDefault();
-      document
-        .querySelector<HTMLInputElement>(
-          'input[aria-label="Search components"]',
-        )
-        ?.focus();
-    };
-    window.addEventListener("keydown", shortcut);
-    return () => window.removeEventListener("keydown", shortcut);
-  }, []);
-
-  async function copyInstall() {
+function useTheme() {
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
     try {
-      await navigator.clipboard.writeText(INSTALL);
-      setToast("Install command copied");
+      const saved = localStorage.getItem("cobalt-ui-theme");
+      if (saved === "light" || saved === "dark") return saved;
     } catch {
-      setToast("Couldn't copy. Select the command instead.");
+      /* storage blocked */
     }
-  }
-
-  return (
-    <ToastProvider>
-      <a className="skip-link" href="#components">
-        Skip to components
-      </a>
-      <header className="site-header">
-        <div className="site-header__inner">
-          <a className="wordmark" href="#top" aria-label="Cobalt UI home">
-            <ScrambleText text="cobalt" duration={500} />
-            <span>ui</span>
-          </a>
-          <nav className="site-nav" aria-label="Site">
-            <a href="#components">Components</a>
-            <a href="#install">Install</a>
-          </nav>
-          <span className="spacer" />
-          <span className="version">v0.2.0</span>
-          <a className="header-button" href={REPO}>
-            <Code2 size={14} aria-hidden="true" />
-            <span>GitHub</span>
-          </a>
-        </div>
-      </header>
-
-      <main id="top">
-        <section className="hero container">
-          <span className="eyebrow">@cobalt/ui</span>
-          <h1>
-            <SplitText text="Every component," />
-            <br />
-            <GradientText>
-              <Typewriter
-                words={[
-                  "in one place.",
-                  "animated.",
-                  "accessible.",
-                  "dark first.",
-                ]}
-              />
-            </GradientText>
-          </h1>
-          <p className="hero__lede">
-            The React kit behind Cobalt. {registry.length} components with
-            graphite surfaces, one cobalt accent and native controls underneath.
-            Everything below is live, so click around. Even the headline.
-          </p>
-          <div className="hero__actions">
-            <a
-              className="ui-button"
-              data-variant="primary"
-              data-size="lg"
-              href="#components"
-            >
-              Browse components
-            </a>
-            <Button variant="secondary" size="lg" onClick={copyInstall}>
-              <Copy size={16} aria-hidden="true" />
-              Copy install
-            </Button>
-            <a
-              className="ui-button"
-              data-variant="ghost"
-              data-size="lg"
-              href={REPO}
-            >
-              Source
-              <ArrowUpRight size={16} aria-hidden="true" />
-            </a>
-          </div>
-          <ul className="facts" aria-label="At a glance">
-            <li>
-              <strong>
-                <CountUp value={registry.length} />
-              </strong>{" "}
-              components
-            </li>
-            <li>
-              <strong>
-                <CountUp value={categories.length} duration={800} />
-              </strong>{" "}
-              categories
-            </li>
-            <li>React 18 &amp; 19</li>
-            <li>Radix under the hood</li>
-            <li>Dark first</li>
-          </ul>
-        </section>
-
-        <div className="container layout" id="components">
-          <aside className="index" aria-label="Component index">
-            <InputGroup leading={<Search size={15} aria-hidden="true" />}>
-              <SearchInput
-                aria-label="Search components"
-                placeholder="Search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <kbd className="kbd" aria-hidden="true">
-                /
-              </kbd>
-            </InputGroup>
-            <nav aria-label="Components" className="index__groups">
-              {categories.map((cat) => {
-                const items = shown.filter((c) => c.category === cat);
-                if (!items.length) return null;
-                return (
-                  <div key={cat} className="index__group">
-                    <a className="index__label" href={`#${cat.toLowerCase()}`}>
-                      {cat}
-                      <span>{items.length}</span>
-                    </a>
-                    {items.map((c) => (
-                      <a
-                        key={c.slug}
-                        className="index-link"
-                        href={`#${c.slug}`}
-                        aria-current={
-                          active === c.slug ? "location" : undefined
-                        }
-                      >
-                        {title(c.name)}
-                      </a>
-                    ))}
-                  </div>
-                );
-              })}
-            </nav>
-          </aside>
-
-          <div className="catalog">
-            <span className="results" role="status">
-              {query ? `${shown.length} of ${registry.length} components` : ""}
-            </span>
-            {shown.length === 0 && (
-              <EmptyState
-                title="Nothing matches that"
-                description="Try a component name, a category or a word like “keyboard”."
-                action={
-                  <Button variant="secondary" onClick={() => setQuery("")}>
-                    Clear search
-                  </Button>
-                }
-              />
-            )}
-            {categories.map((cat) => {
-              const items = shown.filter((c) => c.category === cat);
-              if (!items.length) return null;
-              return (
-                <section
-                  key={cat}
-                  className="category"
-                  id={cat.toLowerCase()}
-                  aria-labelledby={`${cat}-title`}
-                >
-                  <div className="category__head">
-                    <h2 id={`${cat}-title`}>
-                      <SplitText text={cat} stagger={45} />
-                    </h2>
-                    <p>
-                      <ShinyText>{blurbs[cat]}</ShinyText>
-                    </p>
-                  </div>
-                  <div className="grid">
-                    {items.map((c) => (
-                      <ComponentCard key={c.slug} component={c} />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        </div>
-
-        <section className="container" id="install">
-          <div className="install">
-            <div className="install__text">
-              <h2>
-                <GradientText>Use it in your app</GradientText>
-              </h2>
-              <p>
-                Install from GitHub, import the stylesheet once, and you're set.
-                No provider needed, except one for toasts.
-              </p>
-            </div>
-            <div className="install__code">
-              <CodeBlock language="sh" code={INSTALL} />
-              <CodeBlock
-                code={`import "@cobalt/ui/styles.css";\nimport { Button } from "@cobalt/ui";\n\nexport function Play() {\n  return <Button>Play</Button>;\n}`}
-              />
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <footer className="site-footer">
-        <div className="container site-footer__inner">
-          <span className="wordmark">
-            cobalt<span>ui</span>
-          </span>
-          <nav aria-label="Footer">
-            <a href="#components">Components</a>
-            <a href="#install">Install</a>
-            <a href={REPO}>GitHub</a>
-            <a href="https://cobaltlauncher.com">Cobalt Launcher</a>
-          </nav>
-        </div>
-        <div className="container site-footer__bottom">
-          <span>© 2026 Cobalt</span>
-          <span>React + TypeScript component kit</span>
-        </div>
-      </footer>
-
-      <Toast
-        title={toast}
-        open={!!toast}
-        onOpenChange={(open) => !open && setToast("")}
-      />
-      <ToastViewport />
-    </ToastProvider>
-  );
+    return "dark";
+  });
+  useEffect(() => {
+    document.documentElement.dataset.uiTheme = theme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", theme === "dark" ? "#0e0e0d" : "#f5f5f2");
+    try {
+      localStorage.setItem("cobalt-ui-theme", theme);
+    } catch {
+      /* ignore */
+    }
+  }, [theme]);
+  return [theme, setTheme] as const;
 }
 
-function ComponentCard({ component: c }: { component: ComponentEntry }) {
+function matches(doc: ComponentDoc, q: string) {
+  if (!q) return true;
+  const hay = [doc.name, doc.category, doc.description, ...doc.tags].join(" ").toLowerCase();
+  return q.toLowerCase().split(/\s+/).every((w) => hay.includes(w));
+}
+
+function ComponentCard({ doc, highlighted }: { doc: ComponentDoc; highlighted: boolean }) {
   const [open, setOpen] = useState(false);
-  const panel = `${c.slug}-details`;
+  const Preview = previews[doc.name];
   return (
-    <article
-      id={c.slug}
-      className="component"
-      data-wide={wide.has(c.name) || undefined}
-      data-open={open || undefined}
-      aria-labelledby={`${c.slug}-title`}
-    >
-      <header className="component__head">
-        <h3 id={`${c.slug}-title`}>
-          <a href={`#${c.slug}`}>{title(c.name)}</a>
-        </h3>
-        <button
-          type="button"
-          className="code-toggle"
-          aria-expanded={open}
-          aria-controls={panel}
-          onClick={() => setOpen(!open)}
-        >
-          {open ? (
-            <Check size={14} aria-hidden="true" />
-          ) : (
-            <Code2 size={14} aria-hidden="true" />
-          )}
-          {open ? "Hide code" : "Code"}
-          <span className="ui-sr-only"> for {title(c.name)}</span>
-        </button>
+    <article id={doc.slug} className={`g-card${WIDE.has(doc.name) ? " is-wide" : ""}${highlighted ? " is-highlighted" : ""}`} aria-labelledby={`${doc.slug}-title`}>
+      <header className="g-card-head">
+        <div>
+          <h3 id={`${doc.slug}-title`} className="g-card-title">
+            <a href={`#/${doc.slug}`}>{doc.name}</a>
+            {doc.isNew && <Badge tone="accent">New</Badge>}
+          </h3>
+          <p className="g-card-desc">{doc.description}</p>
+        </div>
       </header>
-      <div className="stage" data-fill={fill.has(c.name) || undefined}>
-        <Preview name={c.name} />
-      </div>
-      <p className="component__desc">{c.description}</p>
+      <div className="g-preview">{Preview ? <Preview /> : <span className="ui-hint">No preview</span>}</div>
+      <button type="button" className="g-code-toggle" aria-expanded={open} aria-controls={`${doc.slug}-code`} onClick={() => setOpen((o) => !o)}>
+        <span>Code, props &amp; accessibility</span>
+        <ChevronDown size={15} aria-hidden="true" />
+      </button>
       {open && (
-        <div className="details" id={panel}>
-          {hasVariants.has(c.name) && (
-            <div className="details__block">
-              <h4>Variants</h4>
-              <div className="stage stage--variants">
-                <Variants name={c.name} />
-              </div>
-            </div>
+        <div id={`${doc.slug}-code`} className="g-code">
+          <CodeBlock code={doc.example} language="tsx" title="Usage" />
+          {doc.props.length > 0 && (
+            <dl className="g-props">
+              {doc.props.map((p) => (
+                <div key={p.name}>
+                  <dt className="ui-mono">{p.name}</dt>
+                  <dd>{p.description}</dd>
+                </div>
+              ))}
+            </dl>
           )}
-          <div className="details__block">
-            <h4>Usage</h4>
-            <CodeBlock
-              code={`import { ${c.name}${c.name === "Toast" ? ", ToastProvider, ToastViewport" : ""} } from "@cobalt/ui";\n\n${c.example}`}
-            />
-          </div>
-          <div className="details__block">
-            <h4>Props</h4>
-            <Table>
-              <thead>
-                <tr>
-                  <th scope="col">Prop</th>
-                  <th scope="col">Type and notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {c.props.map((p) => (
-                  <tr key={p.name}>
-                    <td>
-                      <code>{p.name}</code>
-                    </td>
-                    <td>{p.description}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          </div>
-          <div className="details__block">
-            <h4>Accessibility</h4>
-            <p>{c.accessibility}</p>
-          </div>
+          <p className="g-a11y"><strong>Accessibility.</strong> {doc.accessibility}</p>
         </div>
       )}
     </article>
   );
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+function App() {
+  const [theme, setTheme] = useTheme();
+  const [query, setQuery] = useState("");
+  const [hash, setHash] = useState(() => location.hash.replace(/^#\/?/, ""));
+  const search = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onHash = () => setHash(location.hash.replace(/^#\/?/, ""));
+    const onKey = (e: KeyboardEvent) => {
+      const typing = (e.target as HTMLElement)?.closest?.("input, textarea, select, [contenteditable]");
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        search.current?.focus();
+      }
+    };
+    addEventListener("hashchange", onHash);
+    addEventListener("keydown", onKey);
+    return () => (removeEventListener("hashchange", onHash), removeEventListener("keydown", onKey));
+  }, []);
+
+  useEffect(() => {
+    if (!hash) return;
+    const el = document.getElementById(hash);
+    if (el) requestAnimationFrame(() => el.scrollIntoView({ block: "start" }));
+  }, [hash]);
+
+  const filtered = useMemo(() => registry.filter((d) => matches(d, query)), [query]);
+  const grouped = categories.map((cat) => ({ cat, docs: filtered.filter((d) => d.category === cat) })).filter((g) => g.docs.length);
+
+  return (
+    <Toaster>
+      <a className="g-skip" href="#main">Skip to components</a>
+      <header className="g-header">
+        <a className="g-brand" href="#" aria-label="cobalt UI, back to top" onClick={() => setQuery("")}>
+          <Logo />
+          <span className="g-brand-tag">UI</span>
+        </a>
+        <div className="g-search">
+          <SearchInput
+            ref={search}
+            size="sm"
+            placeholder={`Search ${total} components`}
+            aria-label="Search components"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onClear={() => setQuery("")}
+            shortcut="/"
+          />
+        </div>
+        <Tooltip content={theme === "dark" ? "Light theme" : "Dark theme"}>
+          <IconButton aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"} icon={theme === "dark" ? <Sun size={16} /> : <Moon size={16} />} onClick={() => setTheme(theme === "dark" ? "light" : "dark")} />
+        </Tooltip>
+      </header>
+
+      <div className="g-layout">
+        <nav className="g-index" aria-label="Component index">
+          {grouped.map(({ cat, docs }) => (
+            <div key={cat} className="g-index-group">
+              <a className="g-index-cat" href={`#/${cat.toLowerCase()}`}>{cat}<span>{docs.length}</span></a>
+              <ul>
+                {docs.map((d) => (
+                  <li key={d.slug}>
+                    <a href={`#/${d.slug}`} aria-current={hash === d.slug ? "location" : undefined}>
+                      {d.name}
+                      {d.isNew && <span className="g-dot" aria-label="new" />}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </nav>
+
+        <main id="main" className="g-main">
+          {!query && (
+            <section className="g-hero">
+              <p className="ui-eyebrow">@cobalt/ui · v1.0</p>
+              <h1>Every cobalt component, live.</h1>
+              <p className="g-lead">
+                {total} React components for cobalt apps: {newCount} of them new in 1.0, including a launcher set for game
+                libraries, downloads and friends. Everything below is interactive. Press <Kbd>/</Kbd> to search.
+              </p>
+              <CodeBlock code="npm install github:cobalt-gg/webui" language="bash" title="Install" />
+            </section>
+          )}
+          {query && (
+            <p className="g-results" role="status">
+              {filtered.length} {filtered.length === 1 ? "result" : "results"} for “{query}”
+            </p>
+          )}
+          {grouped.map(({ cat, docs }) => (
+            <section key={cat} id={cat.toLowerCase()} className="g-section" aria-labelledby={`${cat}-h`}>
+              <h2 id={`${cat}-h`} className="g-section-title">
+                {cat}
+                <span>{docs.length}</span>
+              </h2>
+              <div className="g-grid">
+                {docs.map((d) => <ComponentCard key={d.slug} doc={d} highlighted={hash === d.slug} />)}
+              </div>
+            </section>
+          ))}
+          {filtered.length === 0 && (
+            <div className="g-empty">
+              <p>No components match “{query}”.</p>
+              <p className="ui-hint">Try a shorter word, like “menu” or “date”.</p>
+            </div>
+          )}
+          <footer className="g-footer">
+            <Logo small />
+            <span>cobalt UI 1.0 · Geist &amp; JetBrains Mono (SIL OFL) · Lucide icons (ISC)</span>
+          </footer>
+        </main>
+      </div>
+    </Toaster>
+  );
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);

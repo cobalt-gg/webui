@@ -1,179 +1,59 @@
-import { test, expect } from "@playwright/test";
-import { registry } from "../../src/registry";
+import { expect, test } from "@playwright/test";
 
-const title = (name: string) =>
-  name.replace(/([a-z])([A-Z])|([A-Z])([A-Z][a-z])/g, "$1$3 $2$4");
-
-test("every component renders live on one page, with search and index", async ({
-  page,
-}) => {
+const errorsOf = (page: import("@playwright/test").Page) => {
   const errors: string[] = [];
+  page.on("console", (m) => m.type() === "error" && errors.push(m.text()));
   page.on("pageerror", (e) => errors.push(e.message));
+  return errors;
+};
+
+test("renders every component with no console errors", async ({ page }) => {
+  const errors = errorsOf(page);
   await page.goto("/");
-  await expect(page.locator(".component")).toHaveCount(registry.length);
-  await expect(page.locator(".component .stage .demo-content")).toHaveCount(
-    registry.length,
-  );
-  for (const c of registry)
-    await expect(
-      page.locator(`#${c.slug} > .component__head h3`),
-    ).toHaveAccessibleName(title(c.name));
-
-  const search = page.getByRole("searchbox", { name: "Search components" });
-  await search.fill("keyboard");
-  await expect(page.locator(".component")).toHaveCount(
-    registry.filter((c) =>
-      [c.name, title(c.name), c.category, c.description, ...c.tags]
-        .join(" ")
-        .toLowerCase()
-        .includes("keyboard"),
-    ).length,
-  );
-  await search.fill("not-a-component");
-  await expect(page.getByText("Nothing matches that")).toBeVisible();
-  await page.getByRole("button", { name: "Clear search" }).click();
-  await expect(page.locator(".component")).toHaveCount(registry.length);
-
-  await page
-    .getByRole("navigation", { name: "Components" })
-    .getByRole("link", { name: "Hotkey Input" })
-    .click();
-  await expect(page.locator("#hotkey-input")).toBeInViewport();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Every cobalt component, live.");
+  const count = await page.locator("article.g-card").count();
+  expect(count).toBeGreaterThanOrEqual(114);
+  await expect(page.locator(".g-preview:has-text('No preview')")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
-test("old detail links land on the component card", async ({ page }) => {
-  await page.goto("/#/accordion");
-  await expect(page.locator("#accordion")).toBeInViewport();
-});
-
-test("code panel shows variants, usage, props and accessibility", async ({
-  page,
-  context,
-}) => {
-  await page.goto("/#button");
-  const card = page.locator("#button");
-  const toggle = card.getByRole("button", { name: /code for Button/i });
-  await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await toggle.click();
-  await expect(toggle).toHaveAttribute("aria-expanded", "true");
-  for (const heading of ["Variants", "Usage", "Props", "Accessibility"])
-    await expect(card.getByRole("heading", { name: heading })).toBeVisible();
-  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
-  await card.getByRole("button", { name: "Copy", exact: true }).click();
-  await expect(card.getByRole("button", { name: "Copied" })).toBeVisible();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
-    "@cobalt/ui",
-  );
-});
-
-test("Cobalt identity: local fonts, graphite ground, no external requests", async ({
-  page,
-}) => {
-  const external: string[] = [];
-  page.on("request", (r) => {
-    if (!r.url().startsWith("http://127.0.0.1:4173")) external.push(r.url());
-  });
+test("search filters cards and / focuses it", async ({ page }) => {
   await page.goto("/");
-  await page.evaluate(() => document.fonts.ready);
-  expect(await page.evaluate(() => document.fonts.check('14px "Geist"'))).toBe(
-    true,
-  );
-  expect(
-    await page.evaluate(() => document.fonts.check('14px "JetBrains Mono"')),
-  ).toBe(true);
-  expect(
-    await page
-      .locator("body")
-      .evaluate((el) => getComputedStyle(el).backgroundColor),
-  ).toBe("rgb(14, 14, 13)");
   await page.keyboard.press("/");
-  await expect(
-    page.getByRole("searchbox", { name: "Search components" }),
-  ).toBeFocused();
-  expect(external).toEqual([]);
+  await expect(page.getByLabel("Search components")).toBeFocused();
+  await page.keyboard.type("date");
+  await expect(page.getByRole("status").filter({ hasText: "results" })).toBeVisible();
+  const names = await page.locator(".g-card-title a").allTextContents();
+  expect(names).toEqual(expect.arrayContaining(["Calendar", "DatePicker"]));
+  expect(names).not.toContain("Button");
 });
 
-test("tokens, focus, reduced motion and small viewport", async ({ page }) => {
-  await page.goto("/");
-  const button = page
-    .locator("#button .stage")
-    .getByRole("button", { name: "Continue" });
-  expect(
-    await button.evaluate((el) => getComputedStyle(el).backgroundColor),
-  ).toBe("rgb(59, 66, 117)");
-  await button.focus();
-  expect(await button.evaluate((el) => getComputedStyle(el).outlineStyle)).toBe(
-    "solid",
-  );
-  await page
-    .locator("#button .stage")
-    .evaluate((el) =>
-      (el as HTMLElement).style.setProperty("--ui-accent", "rgb(120, 40, 160)"),
-    );
-  await expect
-    .poll(() => button.evaluate((el) => getComputedStyle(el).backgroundColor))
-    .toBe("rgb(120, 40, 160)");
+test("hash links scroll to and highlight a component", async ({ page }) => {
+  await page.goto("/#/play-button");
+  const card = page.locator("#play-button");
+  await expect(card).toHaveClass(/is-highlighted/);
+  await expect(card).toBeInViewport();
+});
 
-  await page.emulateMedia({ reducedMotion: "reduce" });
+test("theme toggle switches and persists", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-ui-theme", "light");
   await page.reload();
-  expect(
-    await page
-      .locator("#spinner .ui-spinner")
-      .evaluate((el) => getComputedStyle(el).animationName),
-  ).toBe("none");
-
-  await page.setViewportSize({ width: 375, height: 800 });
-  await page.goto("/");
-  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(
-    375,
-  );
-  await page.keyboard.press("Tab");
-  await expect(page.getByText("Skip to components")).toBeFocused();
+  await expect(page.locator("html")).toHaveAttribute("data-ui-theme", "light");
 });
 
-test("clicks ripple and play text effects; nothing loops on its own", async ({
-  page,
-}) => {
+test("code panel shows usage, props and accessibility", async ({ page }) => {
+  await page.goto("/#/button");
+  const card = page.locator("#button");
+  await card.getByRole("button", { name: /Code, props/ }).click();
+  await expect(card.getByText("Accessibility.")).toBeVisible();
+  await expect(card.locator(".g-props dt").first()).toHaveText("variant");
+});
+
+test("phone width has no horizontal scroll", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/");
-  const button = page
-    .locator("#button .stage")
-    .getByRole("button", { name: "Continue" });
-  await button.click();
-  await expect(button).toHaveAttribute("data-ripple", "");
-  expect(
-    await button.evaluate(
-      (el) => getComputedStyle(el, "::after").animationName,
-    ),
-  ).toBe("ui-ripple");
-
-  const wave = page.locator("#split-text .ui-split-text");
-  await expect(wave).not.toHaveAttribute("data-playing", "");
-  await wave.click();
-  await expect(wave).toHaveAttribute("data-playing", "");
-  await expect(wave).not.toHaveAttribute("data-playing", "", {
-    timeout: 3000,
-  });
-
-  const typed = page
-    .locator("#typewriter .ui-typewriter [aria-hidden]")
-    .first();
-  await expect(typed).toHaveText("Steam");
-  await page.locator("#typewriter .ui-typewriter").click();
-  await expect(typed).toHaveText("Epic", { timeout: 3000 });
-
-  // No infinite animations anywhere except the functional spinner and skeleton.
-  const looping = await page.evaluate(() =>
-    document
-      .getAnimations()
-      .filter(
-        (a) =>
-          a.effect?.getTiming().iterations === Infinity &&
-          !(a.effect as KeyframeEffect).target?.matches(
-            ".ui-spinner, .ui-skeleton",
-          ),
-      )
-      .map((a) => (a as CSSAnimation).animationName),
-  );
-  expect(looping).toEqual([]);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
 });

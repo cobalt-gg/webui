@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8b93c9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-boxes" aria-hidden="true"><path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"></path><path d="m7 16.5-4.74-2.85"></path><path d="m7 16.5 5-3"></path><path d="M7 16.5v5.17"></path><path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"></path><path d="m17 16.5-5-3"></path><path d="m17 16.5 4.74-2.85"></path><path d="M17 16.5v5.17"></path><path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"></path><path d="M12 8 7.26 5.15"></path><path d="m12 8 4.74-2.85"></path><path d="M12 13.5V8"></path></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <style>g{fill:#0e0e0d}@media (prefers-color-scheme:dark){g{fill:#ffffff}}</style>
+  <g transform="translate(0.91 5.44) scale(0.03162)">
+    <path d="M 34.4 628.0 L 222.4 628.0 L 461.0 337.0 L 303.0 337.0 A 63.4 63.4 0 0 0 254.0 360.2 Z"/>
+    <path d="M 294.4 628.0 L 446.4 628.0 L 708.8 308.0 L 586.8 308.0 A 63.4 63.4 0 0 0 537.7 331.2 Z"/>
+    <path d="M 518.4 628.0 L 634.4 628.0 L 811.5 412.0 L 725.5 412.0 A 63.4 63.4 0 0 0 676.5 435.2 Z"/>
+    <path d="M 437.0 300.0 L 506.8 214.8 A 29.6 29.6 0 0 1 529.7 204.0 L 593.0 204.0 C 682.0 204.0 648.1 48.2 920.0 40.0 C 918.1 78.0 874.3 217.1 776.0 337.0 L 776.0 226.0 L 644.0 226.0 A 97.2 97.2 0 0 0 568.8 261.6 L 550.0 284.5 A 42.3 42.3 0 0 1 517.3 300.0 Z"/>
+  </g>
+</svg>

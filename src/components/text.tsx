@@ -1,297 +1,276 @@
 import {
+  forwardRef,
   useEffect,
   useRef,
   useState,
   type CSSProperties,
   type HTMLAttributes,
-  type MouseEvent,
+  type ReactNode,
 } from "react";
-import { cx } from "./actions";
+import { cx, useReducedMotion } from "../lib/utils";
 
-/*
- * Text effects are still until someone clicks them, then play once. The text
- * itself is always readable and selectable, and assistive technology reads the
- * final string exactly once.
- */
+type SpanProps = Omit<HTMLAttributes<HTMLSpanElement>, "children">;
 
-const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*+=<>/";
-
-function prefersReducedMotion() {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-}
-
-/** Restarts the element's CSS animation by toggling data-playing. */
-function replay(el: HTMLElement) {
-  el.removeAttribute("data-playing");
-  void el.offsetWidth;
-  el.setAttribute("data-playing", "");
-}
-
-type ClickHandler = (event: MouseEvent<HTMLSpanElement>) => void;
-function withReplay(onClick?: ClickHandler): ClickHandler {
-  return (event) => {
-    replay(event.currentTarget);
-    onClick?.(event);
+/** Replays an animation each time the element is clicked or activated by key. */
+function usePlay(onPlay?: () => void) {
+  const [run, setRun] = useState(0);
+  const play = () => {
+    setRun((n) => n + 1);
+    onPlay?.();
+  };
+  return {
+    run,
+    play,
+    triggerProps: {
+      role: "button" as const,
+      tabIndex: 0,
+      onClick: play,
+      onKeyDown: (e: React.KeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          play();
+        }
+      },
+    },
   };
 }
-const stop = (event: { currentTarget: HTMLElement; target: EventTarget }) => {
-  if (event.target === event.currentTarget)
-    event.currentTarget.removeAttribute("data-playing");
-};
 
-export type GradientTextProps = HTMLAttributes<HTMLSpanElement>;
-/** Cobalt gradient text. Click to sweep the gradient across it. */
-export function GradientText({
-  className,
-  onClick,
-  ...props
-}: GradientTextProps) {
-  return (
-    <span
-      className={cx("ui-gradient-text", className)}
-      onClick={withReplay(onClick)}
-      onAnimationEnd={stop}
-      {...props}
-    />
-  );
-}
-
-export type ShinyTextProps = HTMLAttributes<HTMLSpanElement>;
-/** Muted text. Click to run a soft highlight across it. */
-export function ShinyText({ className, onClick, ...props }: ShinyTextProps) {
-  return (
-    <span
-      className={cx("ui-shiny-text", className)}
-      onClick={withReplay(onClick)}
-      onAnimationEnd={stop}
-      {...props}
-    />
-  );
-}
-
-export interface SplitTextProps extends Omit<
-  HTMLAttributes<HTMLSpanElement>,
-  "children"
-> {
+export interface SplitTextProps extends SpanProps {
   text: string;
   by?: "char" | "word";
-  /** Milliseconds between each piece. */
+  /** ms between pieces */
   stagger?: number;
 }
-/** Text split into pieces. Click to send a wave through them. */
+
+/** Letters or words that rise in sequence when clicked. */
 export function SplitText({
   text,
   by = "char",
   stagger = 24,
   className,
-  onClick,
   ...props
 }: SplitTextProps) {
-  const words = text.split(" ");
-  let index = 0;
+  const reduced = useReducedMotion();
+  const { run, triggerProps } = usePlay();
+  const pieces = by === "word" ? text.split(/(\s+)/) : Array.from(text);
   return (
     <span
-      className={cx("ui-split-text", className)}
-      onClick={(event) => {
-        // Only the last piece's animation clears the flag.
-        replay(event.currentTarget);
-        onClick?.(event);
-      }}
-      onAnimationEnd={(event) => {
-        if ((event.target as HTMLElement).dataset.last !== undefined)
-          event.currentTarget.removeAttribute("data-playing");
-      }}
+      className={cx("ui-split", className)}
+      aria-label={text}
+      {...triggerProps}
       {...props}
     >
-      <span className="ui-sr-only">{text}</span>
-      {words.map((word, w) => (
-        <span key={w} className="ui-split-word" aria-hidden="true">
-          {(by === "word" ? [word] : Array.from(word)).map((piece, p, all) => {
-            const last = w === words.length - 1 && p === all.length - 1;
-            return (
-              <span
-                key={p}
-                className="ui-split-piece"
-                data-last={last || undefined}
-                style={
-                  { "--ui-delay": `${index++ * stagger}ms` } as CSSProperties
-                }
-              >
-                {piece}
-              </span>
-            );
-          })}
-          {w < words.length - 1 && " "}
+      {pieces.map((piece, i) => (
+        <span
+          key={`${run}-${i}`}
+          aria-hidden="true"
+          className={cx("ui-split-piece", run > 0 && !reduced && "is-playing")}
+          style={{ animationDelay: `${i * stagger}ms` } as CSSProperties}
+        >
+          {piece === " " ? " " : piece}
         </span>
       ))}
     </span>
   );
 }
 
-export interface ScrambleTextProps extends Omit<
-  HTMLAttributes<HTMLSpanElement>,
-  "children"
-> {
+const GLYPHS = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&*+=<>/";
+
+export interface ScrambleTextProps extends SpanProps {
   text: string;
-  /** Milliseconds for the whole decode. */
+  /** ms for the decode */
   duration?: number;
 }
-/** Click to scramble the text and let it decode back into place. */
+
+/** Scrambles into glyphs and decodes back, left to right, on click. */
 export function ScrambleText({
   text,
-  duration = 600,
+  duration = 700,
   className,
-  onClick,
   ...props
 }: ScrambleTextProps) {
+  const reduced = useReducedMotion();
   const [shown, setShown] = useState(text);
   const frame = useRef(0);
-  useEffect(() => {
-    setShown(text);
-    return () => cancelAnimationFrame(frame.current);
-  }, [text]);
-  function run() {
+  useEffect(() => setShown(text), [text]);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+  const { triggerProps } = usePlay(() => {
+    if (reduced) return;
     cancelAnimationFrame(frame.current);
-    if (prefersReducedMotion() || typeof requestAnimationFrame === "undefined")
-      return;
     const start = performance.now();
     const tick = (now: number) => {
-      const progress = Math.min(1, (now - start) / duration);
-      const settled = Math.floor(progress * text.length);
+      const t = Math.min(1, (now - start) / duration);
+      const settled = Math.floor(t * text.length);
       setShown(
-        Array.from(text, (ch, i) =>
-          i < settled || ch === " "
-            ? ch
-            : GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
-        ).join(""),
+        Array.from(text)
+          .map((ch, i) =>
+            i < settled || ch === " "
+              ? ch
+              : GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+          )
+          .join(""),
       );
-      if (progress < 1) frame.current = requestAnimationFrame(tick);
+      if (t < 1) frame.current = requestAnimationFrame(tick);
     };
     frame.current = requestAnimationFrame(tick);
-  }
+  });
   return (
     <span
-      className={cx("ui-scramble-text", className)}
-      onClick={(event) => {
-        run();
-        onClick?.(event);
-      }}
+      className={cx("ui-scramble", className)}
+      aria-label={text}
+      {...triggerProps}
       {...props}
     >
-      <span className="ui-sr-only">{text}</span>
       <span aria-hidden="true">{shown}</span>
     </span>
   );
 }
 
-export interface TypewriterProps extends Omit<
-  HTMLAttributes<HTMLSpanElement>,
-  "children"
-> {
-  words: string[];
-  /** Milliseconds per typed character. */
+export interface TypewriterProps extends SpanProps {
+  text: string;
+  /** ms per character */
   speed?: number;
+  cursor?: boolean;
 }
-/** Shows one word. Click to delete it and type the next. */
+
+/** Retypes its text with a caret when clicked. */
 export function Typewriter({
-  words,
-  speed = 55,
+  text,
+  speed = 38,
+  cursor = true,
   className,
-  onClick,
   ...props
 }: TypewriterProps) {
-  const list = words.length ? words : [""];
-  const [word, setWord] = useState(0);
-  const [length, setLength] = useState(list[0].length);
-  const [phase, setPhase] = useState<"idle" | "deleting" | "typing">("idle");
-  const current = list[word % list.length];
-  useEffect(() => {
-    if (phase === "idle") return;
-    const timer = setTimeout(
-      () => {
-        if (phase === "deleting") {
-          if (length > 0) setLength(length - 1);
-          else {
-            setWord((w) => (w + 1) % list.length);
-            setPhase("typing");
-          }
-        } else if (length < current.length) setLength(length + 1);
-        else setPhase("idle");
-      },
-      phase === "deleting" ? speed / 2 : speed,
-    );
-    return () => clearTimeout(timer);
-  }, [phase, length, current, list.length, speed]);
+  const reduced = useReducedMotion();
+  const [count, setCount] = useState(text.length);
+  const timer = useRef<number | undefined>(undefined);
+  useEffect(() => setCount(text.length), [text]);
+  useEffect(() => () => window.clearInterval(timer.current), []);
+  const { triggerProps } = usePlay(() => {
+    if (reduced) return;
+    window.clearInterval(timer.current);
+    setCount(0);
+    timer.current = window.setInterval(() => {
+      setCount((n) => {
+        if (n >= text.length) {
+          window.clearInterval(timer.current);
+          return n;
+        }
+        return n + 1;
+      });
+    }, speed);
+  });
   return (
     <span
       className={cx("ui-typewriter", className)}
-      data-typing={phase !== "idle" || undefined}
-      onClick={(event) => {
-        if (list.length > 1 && phase === "idle") {
-          if (prefersReducedMotion()) {
-            const next = (word + 1) % list.length;
-            setWord(next);
-            setLength(list[next].length);
-          } else setPhase("deleting");
-        }
-        onClick?.(event);
-      }}
+      aria-label={text}
+      {...triggerProps}
       {...props}
     >
-      <span className="ui-sr-only" aria-live="polite">
-        {phase === "idle" ? current : ""}
-      </span>
-      <span aria-hidden="true">{current.slice(0, length)}</span>
-      <span className="ui-typewriter-caret" aria-hidden="true" />
+      <span aria-hidden="true">{text.slice(0, count)}</span>
+      {cursor && <span className="ui-typewriter-caret" aria-hidden="true" />}
     </span>
   );
 }
 
-export interface CountUpProps extends Omit<
-  HTMLAttributes<HTMLSpanElement>,
-  "children"
-> {
-  value: number;
-  /** Milliseconds to reach the value. */
+export interface GradientTextProps extends HTMLAttributes<HTMLSpanElement> {
+  /** CSS colours; defaults to the cobalt ramp */
+  colors?: string[];
+}
+
+/** Cobalt gradient fill. Click to sweep the gradient across. */
+export function GradientText({
+  colors,
+  className,
+  style,
+  children,
+  ...props
+}: GradientTextProps) {
+  const { run, triggerProps } = usePlay();
+  const stops = colors?.join(", ");
+  return (
+    <span
+      className={cx("ui-gradient-text", run > 0 && "is-playing", className)}
+      style={
+        {
+          ...(stops ? { "--ui-gradient": stops } : {}),
+          ...style,
+        } as CSSProperties
+      }
+      key={run}
+      {...triggerProps}
+      {...props}
+    >
+      {children}
+    </span>
+  );
+}
+
+/** A single highlight passes over the text on click. */
+export function ShinyText({
+  className,
+  children,
+  ...props
+}: HTMLAttributes<HTMLSpanElement>) {
+  const { run, triggerProps } = usePlay();
+  return (
+    <span
+      key={run}
+      className={cx("ui-shiny", run > 0 && "is-playing", className)}
+      {...triggerProps}
+      {...props}
+    >
+      {children}
+    </span>
+  );
+}
+
+export interface CountUpProps extends SpanProps {
+  to: number;
+  from?: number;
+  /** ms */
   duration?: number;
-  /** Decimal places to show. */
   decimals?: number;
   prefix?: string;
   suffix?: string;
+  /** Count on mount as well as on click */
+  autoStart?: boolean;
 }
-/** Shows a number. Click to count it up from zero again. */
+
+/** Counts to a number with an ease-out curve. Click to recount. */
 export function CountUp({
-  value,
-  duration = 900,
+  to,
+  from = 0,
+  duration = 1200,
   decimals = 0,
   prefix = "",
   suffix = "",
+  autoStart = false,
   className,
-  onClick,
   ...props
 }: CountUpProps) {
-  const [current, setCurrent] = useState(value);
+  const reduced = useReducedMotion();
+  const [value, setValue] = useState(autoStart ? from : to);
   const frame = useRef(0);
-  useEffect(() => {
-    setCurrent(value);
-    return () => cancelAnimationFrame(frame.current);
-  }, [value]);
-  function run() {
+  const start = () => {
+    if (reduced) return setValue(to);
     cancelAnimationFrame(frame.current);
-    if (prefersReducedMotion() || typeof requestAnimationFrame === "undefined")
-      return;
-    const start = performance.now();
+    const begin = performance.now();
     const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      setCurrent(value * (1 - Math.pow(1 - t, 3)));
+      const t = Math.min(1, (now - begin) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(from + (to - from) * eased);
       if (t < 1) frame.current = requestAnimationFrame(tick);
     };
     frame.current = requestAnimationFrame(tick);
-  }
+  };
+  useEffect(() => {
+    if (autoStart) start();
+    else setValue(to);
+    return () => cancelAnimationFrame(frame.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [to]);
+  const { triggerProps } = usePlay(start);
   const format = (n: number) =>
     `${prefix}${n.toLocaleString(undefined, {
       minimumFractionDigits: decimals,
@@ -299,15 +278,152 @@ export function CountUp({
     })}${suffix}`;
   return (
     <span
-      className={cx("ui-count-up", className)}
-      onClick={(event) => {
-        run();
-        onClick?.(event);
-      }}
+      className={cx("ui-countup", className)}
+      aria-label={format(to)}
+      {...triggerProps}
       {...props}
     >
-      <span className="ui-sr-only">{format(value)}</span>
-      <span aria-hidden="true">{format(current)}</span>
+      <span aria-hidden="true">{format(value)}</span>
     </span>
+  );
+}
+
+export interface BlurRevealProps extends SpanProps {
+  text: string;
+  stagger?: number;
+}
+
+/** Words sharpen out of a blur, one after another. Click to replay. */
+export function BlurReveal({
+  text,
+  stagger = 60,
+  className,
+  ...props
+}: BlurRevealProps) {
+  const reduced = useReducedMotion();
+  const { run, triggerProps } = usePlay();
+  return (
+    <span
+      className={cx("ui-blur-reveal", className)}
+      aria-label={text}
+      {...triggerProps}
+      {...props}
+    >
+      {text.split(" ").map((word, i) => (
+        <span
+          key={`${run}-${i}`}
+          aria-hidden="true"
+          className={cx("ui-blur-word", run > 0 && !reduced && "is-playing")}
+          style={{ animationDelay: `${i * stagger}ms` }}
+        >
+          {word}{" "}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+export interface MarqueeProps extends HTMLAttributes<HTMLDivElement> {
+  /** seconds per loop */
+  speed?: number;
+  reverse?: boolean;
+  /** Pause while hovered */
+  pauseOnHover?: boolean;
+}
+
+/** Endless horizontal scroll of its children (logos, tags). Stops for reduced motion. */
+export function Marquee({
+  speed = 30,
+  reverse,
+  pauseOnHover = true,
+  className,
+  style,
+  children,
+  ...props
+}: MarqueeProps) {
+  return (
+    <div
+      className={cx(
+        "ui-marquee",
+        reverse && "is-reverse",
+        pauseOnHover && "is-hover-pause",
+        className,
+      )}
+      style={{ "--ui-marquee-speed": `${speed}s`, ...style } as CSSProperties}
+      {...props}
+    >
+      <div className="ui-marquee-track">{children}</div>
+      <div className="ui-marquee-track" aria-hidden="true">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export interface KbdProps extends HTMLAttributes<HTMLElement> {
+  /** Keys rendered as separate caps, e.g. ["⌘", "K"] */
+  keys?: string[];
+}
+
+/** Keyboard key caps. */
+export const Kbd = forwardRef<HTMLElement, KbdProps>(function Kbd(
+  { keys, className, children, ...props },
+  ref,
+) {
+  if (keys)
+    return (
+      <span className={cx("ui-kbd-group", className)} ref={ref} {...props}>
+        {keys.map((k) => (
+          <kbd key={k} className="ui-kbd">
+            {k}
+          </kbd>
+        ))}
+      </span>
+    );
+  return (
+    <kbd className={cx("ui-kbd", className)} ref={ref} {...props}>
+      {children}
+    </kbd>
+  );
+});
+
+export interface HighlightProps extends HTMLAttributes<HTMLElement> {
+  tone?: "accent" | "success" | "warning" | "danger";
+}
+
+/** Marker-style highlight for a phrase in running text. */
+export function Highlight({
+  tone = "accent",
+  className,
+  ...props
+}: HighlightProps) {
+  return <mark className={cx("ui-highlight", `is-${tone}`, className)} {...props} />;
+}
+
+export interface HeadingProps extends HTMLAttributes<HTMLHeadingElement> {
+  level?: 1 | 2 | 3 | 4;
+  /** Visual size, independent of level */
+  size?: "sm" | "md" | "lg" | "xl" | "display";
+  eyebrow?: ReactNode;
+}
+
+/** Heading with an optional eyebrow line; level and visual size are separate. */
+export function Heading({
+  level = 2,
+  size,
+  eyebrow,
+  className,
+  children,
+  ...props
+}: HeadingProps) {
+  const Tag = `h${level}` as "h2";
+  const resolved = size ?? (["display", "xl", "lg", "md"] as const)[level - 1];
+  return (
+    <div className={cx("ui-heading-wrap", className)}>
+      {eyebrow && <p className="ui-eyebrow">{eyebrow}</p>}
+      <Tag className={cx("ui-heading", `is-${resolved}`)} {...props}>
+        {children}
+      </Tag>
+    </div>
   );
 }

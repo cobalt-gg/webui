@@ -12,7 +12,9 @@
     "types": ["vite/client", "node"],
     "baseUrl": ".",
     "paths": {
-      "@cobalt/ui": ["src/index.ts"]
+      "@cobalt/ui": ["src/index.ts"],
+      "@cobalt/ui/registry": ["src/registry.ts"],
+      "@cobalt/ui/styles.css": ["src/styles/index.css"]
     }
   },
   "include": ["src", "site", "tests", "*.ts"]
